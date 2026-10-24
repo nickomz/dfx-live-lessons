@@ -56,8 +56,11 @@ Lo más funcional posible sin complejizar la app.
 - **Pegar con formato** desde Google Docs y Notion, convirtiendo a lo que Live soporte y descartando el resto.
 - Imágenes por arrastrar, elegir archivo o pegar (Cmd/Ctrl+V, clave para capturas de Ableton). Se convierten siempre a PNG (también JPG, GIF, etc., que Live no muestra) y se exportan en dos tamaños: 260 px de ancho en la carpeta de la lección y 520 px en `Large/` (si la imagen original es más chica, no se agranda).
 - Links entre páginas y a URLs externas (confirmados en Fase 0, incluido YouTube). Solo `https://`: si el docente pega un link `http://`, la app lo pasa a `https://`.
+- **Link a email** (`mailto:`): el docente escribe la dirección y la app arma el link.
+- **Link a otro Set** (`Set:`): v1 se piensa para un único `.als`, pero la lección puede abrir otro Set del mismo proyecto. El docente escribe el nombre del Set destino (por ejemplo "Ejercicio 2") y la app agrega `.als` si falta. La app no puede verificar que exista: escribirlo bien es responsabilidad del docente. En el diálogo del link se muestra el aviso: "El Set tiene que estar en la misma carpeta del proyecto y el nombre tiene que coincidir exactamente."
+- **Lo que la app no edita se conserva.** Al abrir una lección, todo elemento que el editor no ofrece (links `Pref:`, `Browse…`, `$If`, etc.) se muestra como un bloque gris no editable, que se puede mover o borrar, y se exporta tal cual.
 - **Exportar `.zip`**: el zip se llama `[Nombre del set] Lessons.zip` y contiene la carpeta `[Nombre del set] Lessons/` con los siete `.txt` (UTF-8 sin BOM, LF), las imágenes y la subcarpeta `Large/`. La app pide el nombre del set una sola vez, la primera vez que se exporta: se escribe, o se arrastra el `.als` para tomar el nombre exacto (solo se lee el nombre del archivo, no se sube nada).
-- **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Son las mismas para Mac y Windows: abrir el zip y arrastrar la carpeta de adentro al proyecto. Esa redacción evita el problema de Windows con "Extraer todo", que crea `X Lessons/X Lessons` y Live no lo lee. Aclará que cada `.als` lleva su propia lección (para otro set, se arma otra lección y se exporta aparte), que si se renombra el set o se hace Save As hay que renombrar o duplicar la carpeta de la lección, que funciona en Live 11 o superior y avisá lo de 12.4.0–12.4.4.
+- **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Son las mismas para Mac y Windows: abrir el zip y arrastrar la carpeta de adentro al proyecto. Esa redacción evita el problema de Windows con "Extraer todo", que crea `X Lessons/X Lessons` y Live no lo lee. Aclará que cada `.als` lleva su propia lección (para otro set, se arma otra lección y se exporta aparte), que si se renombra el set o se hace Save As hay que renombrar o duplicar la carpeta de la lección, que si la lección tiene links a otros Sets esos Sets tienen que estar en el mismo proyecto (y si se les cambia el nombre, el link deja de funcionar), que funciona en Live 11 o superior y avisá lo de 12.4.0–12.4.4.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
 - Borrador guardado automáticamente en el navegador (incluidas las imágenes). Se trabaja **una lección a la vez**.
 - Interfaz en español e inglés, con un selector **ES · EN** en el footer (en el celular, debajo del panel). Arranca en el idioma del navegador y recuerda la elección. Solo cambia los textos de la app, no el contenido de la lección.
@@ -71,7 +74,8 @@ Lo más funcional posible sin complejizar la app.
 
 - Traducción automática ES↔EN (requiere una API con clave y un backend).
 - Búsqueda de imágenes en Unsplash o Pexels (mismo problema de clave).
-- Links que cargan otro set o abren carpetas del browser de Live.
+- Links que abren carpetas del browser de Live.
+- Arrastrar el proyecto entero a la app para elegir los Sets de una lista (para los links a otro Set).
 - Lista de lecciones guardadas en el navegador (una por set), para pasar de una a otra sin exportar.
 - Escribir directo en la carpeta del proyecto. Se descartó: solo funciona en Chrome y Edge, y el zip es el flujo único.
 

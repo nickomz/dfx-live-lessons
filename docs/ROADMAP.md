@@ -41,6 +41,7 @@ Confirmar en Live real cómo se ve y se comporta cada elemento del formato. La h
 - [x] Probar acentos, ñ y comillas; BOM y saltos de línea de Windows; qué pasa con Save As y Collect All.
 - [x] Sacar capturas de referencia del panel (`docs/capturas/`).
 - [ ] Sin internet, `Large/` en Live 12 con Retina y Windows: quedaron sin probar (ver `docs/formato.md`).
+- [ ] Probar en Live 12.4.7 y 11.3 los links `mailto:` y `Set:` a un Set de la misma carpeta, y qué pasa si el Set no existe.
 
 Resultado: [`docs/formato.md`](formato.md), aprobado por Nicko.
 
@@ -52,6 +53,7 @@ El código que lee y escribe los archivos `Lessons*.txt`. No se ve, pero todo lo
 
 - Lector y escritor del formato, con pruebas automáticas.
 - Prueba de ida y vuelta: abrir una lección y guardarla deja el archivo idéntico, carácter por carácter.
+- Los elementos que el editor no ofrece (links `Pref:`, `Browse…`, `$If`, etc.) se conservan intactos.
 
 **Termina cuando:** las lecciones existentes de Nicko se abren y se guardan sin cambiar nada.
 
@@ -71,7 +73,7 @@ Algo usable, aunque básico, para confirmar que vamos bien.
 Todo lo que pide el alcance v1 del brief.
 
 - Imágenes: arrastrar, elegir, pegar; ajuste automático a 260/520 px.
-- Links entre páginas y a URLs.
+- Links entre páginas, a URLs, a email y a otro Set.
 - Pegar desde Google Docs y Notion.
 - Abrir una lección existente (carpeta o `.zip`).
 - Borrador guardado automáticamente.
@@ -104,5 +106,6 @@ Lo que el brief deja afuera de v1, priorizado según lo que pidan los usuarios:
 
 - Traducción automática ES↔EN.
 - Búsqueda de imágenes en Unsplash o Pexels.
-- Links que abren otro set o carpetas del browser de Live.
+- Links que abren carpetas del browser de Live.
+- Arrastrar el proyecto entero a la app para elegir los Sets de una lista.
 - Lista de lecciones guardadas (una por set), para pasar de una a otra sin exportar. En v1 se trabaja una lección a la vez.

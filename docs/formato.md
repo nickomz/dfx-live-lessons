@@ -61,8 +61,10 @@ Conclusión para la app: toda imagen se convierte a **PNG de 260 px de ancho** (
 | A una web con http | `$Link texto <http://...>` | **No abrió nada** | No probado |
 | Link con texto en negrita | `$Link *texto* <...>` | Funciona | No probado |
 | Imagen como link | `$Link imagen.png <...>` | Funciona: clic en la imagen | No probado |
+| A un email | `$Link texto <mailto:nombre@dominio.com>` | No probado | No probado |
+| A otro Set del proyecto | `$Link texto <Set:Ejercicio 2.als>` | No probado (falta también ver qué pasa si el Set no existe) | No probado |
 
-Los links se ven subrayados. Conclusión para la app: solo links a páginas y a `https://`. Si el docente pega un link `http://`, se pasa a `https://`.
+Los links se ven subrayados. Conclusión para la app: links a páginas y a `https://`. Si el docente pega un link `http://`, se pasa a `https://`. Los links `mailto:` y `Set:` están decididos para v1 pero todavía no se probaron en Live.
 
 ## Cómo se ve el panel
 
