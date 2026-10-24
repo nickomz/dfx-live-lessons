@@ -3,7 +3,9 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { blocksToContent, contentToBlocks } from '../src/editor/convert';
 import JSZip from 'jszip';
-import { cleanSetName, exportFiles, exportZip, newPage } from '../src/editor/document';
+import { cleanSetName, exportFiles, exportZip, fromLesson, newLesson, newPage } from '../src/editor/document';
+import { findLessonFolder, readZip } from '../src/app/open';
+import { readLessonFolder } from '../src/lesson';
 import { parseLesson, serializeLesson } from '../src/lesson';
 
 const root = join(import.meta.dirname, '..');
@@ -55,7 +57,7 @@ describe('exportar', () => {
       ],
     };
     const p2 = newPage([p1], 'Segunda');
-    const files = exportFiles([p1, p2]);
+    const files = exportFiles({ ...newLesson(), pages: [p1, p2] });
     expect(files.size).toBe(7);
     expect(dec(files.get('LessonsES.txt')!)).toBe(
       [
@@ -69,7 +71,6 @@ describe('exportar', () => {
         '$Page Segunda',
         '$TargetName Pagina2',
         '',
-        '',
       ].join('\n'),
     );
   });
@@ -82,12 +83,54 @@ describe('zip', () => {
   });
 
   it('arma "<Set> Lessons.zip" con la carpeta y los 7 idiomas adentro', async () => {
-    const bytes = await exportZip([newPage([], 'Uno')], 'Clase 03');
+    const bytes = await exportZip({ ...newLesson(), pages: [newPage([], 'Uno')] }, 'Clase 03');
     const zip = await JSZip.loadAsync(bytes);
     const files = Object.keys(zip.files).filter((p) => !zip.files[p]!.dir).sort();
     expect(files).toEqual(
       ['DE', 'EN', 'ES', 'FR', 'IT', 'JA', 'ZH'].map((l) => `Clase 03 Lessons/Lessons${l}.txt`),
     );
-    expect(await zip.file('Clase 03 Lessons/LessonsES.txt')!.async('string')).toBe('$Page Uno\n$TargetName Pagina1\n\n');
+    expect(await zip.file('Clase 03 Lessons/LessonsES.txt')!.async('string')).toBe('$Page Uno\n$TargetName Pagina1\n');
+  });
+});
+
+describe('abrir una lección', () => {
+  it.each(['docs/pruebas/test Lessons/LessonsES.txt', 'docs/pruebas/links Lessons/LessonsES.txt', 'tests/fixtures/lode/LessonsEN.txt'])(
+    '%s abierta y exportada sin tocar sale idéntica',
+    (path) => {
+      const bytes = new Uint8Array(readFileSync(join(root, path)));
+      const files = exportFiles(fromLesson(parseLesson(bytes)));
+      expect(files.get('LessonsES.txt')).toEqual(bytes);
+    },
+  );
+
+  it('si se renombra una página, solo cambia esa línea', () => {
+    const edit = fromLesson(parseLesson(new TextEncoder().encode('$Page Uno \n$TargetName X\nHola\n')));
+    edit.pages[0]!.title = 'Dos';
+    edit.source = undefined;
+    expect(dec(exportFiles(edit).get('LessonsEN.txt')!)).toBe('$Page Dos\n$TargetName X\nHola\n');
+  });
+
+  it('encuentra la carpeta "<Set> Lessons" dentro de un zip y toma el nombre del set', async () => {
+    const zip = await exportZip({ ...newLesson(), pages: [newPage([], 'Uno')] }, 'Clase 03');
+    const folder = findLessonFolder(await readZip(zip))!;
+    expect(folder.setName).toBe('Clase 03');
+    expect([...folder.files.keys()]).toContain('LessonsES.txt');
+    const read = readLessonFolder(folder.files);
+    expect(read.languagesDiffer).toBe(false);
+    // Volver a exportar lo abierto da el mismo archivo.
+    const again = exportFiles(fromLesson(read.lessons.get('LessonsES.txt')!));
+    expect(again.get('LessonsES.txt')).toEqual(folder.files.get('LessonsES.txt'));
+  });
+
+  it('ignora archivos de sistema y conserva las imágenes', () => {
+    const enc = (s: string) => new TextEncoder().encode(s);
+    const folder = findLessonFolder(new Map([
+      ['MZ Lessons/LessonsES.txt', enc('$Page A\n')],
+      ['MZ Lessons/img.png', new Uint8Array([1])],
+      ['MZ Lessons/.DS_Store', new Uint8Array([0])],
+      ['__MACOSX/MZ Lessons/._img.png', new Uint8Array([0])],
+    ]))!;
+    expect(folder.setName).toBe('MZ');
+    expect([...folder.files.keys()].sort()).toEqual(['LessonsES.txt', 'img.png']);
   });
 });

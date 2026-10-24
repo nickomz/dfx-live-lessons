@@ -1,22 +1,23 @@
 // Exportar: el resumen al pasar el mouse, el nombre del set la primera vez, la descarga
 // del zip y las instrucciones para llevar la lección a Live.
 
-import { cleanSetName, exportZip, type EditorPage } from '../editor/document';
+import { cleanSetName, exportZip, type EditorLesson } from '../editor/document';
 import { t } from './strings';
 
 interface ExportOptions {
-  getPages: () => EditorPage[];
+  getLesson: () => EditorLesson;
+  /** Se llama cuando cambia algo de la lección que hay que guardar (el nombre del set). */
+  onChange: () => void;
   info: HTMLElement;
   button: HTMLElement;
 }
 
 const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-export function setupExport({ getPages, info, button }: ExportOptions) {
-  let setName = '';
+export function setupExport({ getLesson, onChange, info, button }: ExportOptions) {
 
   function updateExportInfo() {
-    const zip = `${setName || t.setNamePlaceholder} Lessons.zip`;
+    const zip = `${getLesson().setName || t.setNamePlaceholder} Lessons.zip`;
     info.replaceChildren(
       ...t.exportInfo(zip).map((line) => {
         const span = document.createElement('span');
@@ -94,7 +95,8 @@ export function setupExport({ getPages, info, button }: ExportOptions) {
     e.preventDefault();
     const name = cleanSetName(nameInput.value);
     if (!name) return;
-    setName = name;
+    getLesson().setName = name;
+    onChange();
     updateExportInfo();
     nameDialog.close();
     void download();
@@ -108,6 +110,7 @@ export function setupExport({ getPages, info, button }: ExportOptions) {
   document.body.append(doneDialog);
 
   function showDone() {
+    const setName = getLesson().setName;
     const folder = escape(`${setName} Lessons`);
     doneDialog.innerHTML = `
       <div class="dlg-body">
@@ -131,7 +134,11 @@ export function setupExport({ getPages, info, button }: ExportOptions) {
   }
 
   async function download() {
-    const bytes = await exportZip(getPages(), setName);
+    const lesson = getLesson();
+    // La lección abierta tenía textos distintos por idioma: se exporta el editado en los 7.
+    if (lesson.languagesDiffer && !confirm(t.replaceTranslations)) return;
+    const setName = lesson.setName;
+    const bytes = await exportZip(lesson, setName);
     const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }));
     const a = document.createElement('a');
     a.href = url;
@@ -145,7 +152,7 @@ export function setupExport({ getPages, info, button }: ExportOptions) {
 
   button.addEventListener('click', () => {
     hide();
-    if (setName) return void download();
+    if (getLesson().setName) return void download();
     nameInput.value = '';
     refreshName();
     nameDialog.showModal();

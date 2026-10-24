@@ -4,6 +4,13 @@ export const t = {
   lessons: 'Lecciones',
   newLesson: 'Nueva lección',
   newLessonConfirm: 'Se borra la lección actual. ¿Seguir?',
+  openZip: 'Abrir .zip',
+  openFolder: 'Abrir carpeta',
+  dropHint: 'También podés arrastrar la carpeta o el .zip a cualquier parte.',
+  notALesson: 'No encontramos una lección ahí. Buscá la carpeta que termina en « Lessons» (o su .zip).',
+  languagesDifferTitle: 'Esta lección tiene textos distintos por idioma',
+  languagesDifferHelp: '¿Cuál editás? Al exportar, ese texto reemplaza a los demás idiomas.',
+  replaceTranslations: 'Esta lección tenía textos distintos por idioma. Al exportar, el texto que editaste reemplaza a todos los idiomas. ¿Seguir?',
   export: 'Exportar',
   exportInfo: (zip: string) => [
     `Se descarga «${zip}»`,

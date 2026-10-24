@@ -187,3 +187,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .inserter { left: -40px; }
   .insert-menu { left: -36px; top: 36px; }
 }
+
+/* Abrir lecciones */
+.menu-hint { padding: 6px 10px 4px; font-size: 12px; line-height: 1.4; color: var(--faint); }
+.lang-list { display: flex; flex-direction: column; gap: 4px; }
+.menu-item.lang { justify-content: flex-start; gap: 12px; }
+.menu-item.lang b { width: 28px; font-weight: 600; }
+.menu-item.lang span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
