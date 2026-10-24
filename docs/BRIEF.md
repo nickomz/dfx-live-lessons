@@ -23,7 +23,8 @@ Trabajá en español rioplatense. Antes de cada fase, mostrame el plan; dentro d
 - El archivo tiene que empezar exactamente con `$Page`. Un carácter antes (ej. `\$Page`) y Live no muestra nada.
 - Codificación: todos los `Lessons*.txt` que trae Live son UTF-8 sin BOM, con saltos de línea LF (ninguno usa CRLF). La app escribe siempre así; un BOM pondría bytes antes de `$Page`.
 - **Probado y funcionando en Live 12.4.7 (Mac)**: Live 12.4 reemplazó la Help View por la Learn View, pero las lecciones por proyecto siguen cargando. Hay un proyecto de prueba en `~/Desktop/test Project`.
-- Versión mínima recomendada: **Live 12.4.5**. Esa versión corrigió un crash al arrancar con un Set que tenía una lección asociada (release notes oficiales de Live 12). El formato es el mismo desde Live 11.3, así que las versiones anteriores deberían leerlo, pero no está probado.
+- **Versiones soportadas: Live 11 y 12, con imágenes PNG.** Es lo que se puede probar: en la Mac están instaladas 11.3, 12.0, 12.3 y 12.4, y el formato es idéntico en las cuatro. Live 9 y 10 probablemente lean la lección (la sintaxis básica es la misma desde 2010), pero no se prueban ni se garantizan; las guías viejas dicen que esas versiones solo mostraban imágenes TIFF. Exportar en TIFF para cubrir versiones viejas queda descartado para v1.
+- Versión recomendada: **Live 12.4.5 o superior** dentro de Live 12, porque esa versión corrigió un crash al arrancar con un Set que tenía una lección asociada (release notes oficiales de Live 12).
 - Live elige el archivo según el idioma de SU interfaz. Son siete idiomas: `LessonsEN.txt`, `LessonsES.txt`, `DE`, `FR`, `IT`, `JA` y `ZH` (chino simplificado, presente en las lecciones que trae Live 12). Si falta el del idioma del alumno, no ve nada. Por eso la app escribe el contenido en los siete idiomas por defecto.
 - Imágenes: las lecciones de Ableton usan PNG de **260 px de ancho como máximo**, con una copia opcional al doble (hasta 520 px, mismo nombre de archivo) en la subcarpeta `Large/` para pantallas Retina. El TIFF que piden las guías viejas ya no hace falta. No hay evidencia de que JPG o GIF funcionen. (Sale de los archivos de Live y los Packs instalados; falta verlo en pantalla en Fase 0.)
 
@@ -32,7 +33,7 @@ Trabajá en español rioplatense. Antes de cada fase, mostrame el plan; dentro d
 La documentación pública de la sintaxis es de foros viejos. No te bases en eso; sacala de la fuente:
 
 1. Buscá en la Mac todos los `Lessons*.txt` que trae Live y los Packs instalados (bundle de la app en `Contents/App-Resources/`, la User Library, las carpetas de Packs). Extraé la sintaxis real: títulos, negritas, listas, separadores, imágenes, todos los tipos de `$Link` (a página, a set, al browser, a URL externa).
-2. Probá en Live 12.4.7, con el proyecto de prueba y usando el control de la compu:
+2. Probá en Live 12.4.7 y repetí lo esencial (que la lección aparezca, imágenes PNG, negrita, cursiva, viñetas y links) en Live 11.3, con el proyecto de prueba y usando el control de la compu:
    - Acentos, ñ, ¿¡ y comillas tipográficas (ya hay una línea de prueba en `test Lessons`).
    - Links a URL externa (YouTube). Es requisito de v1 si Live lo soporta.
    - Ancho máximo de imagen y formatos aceptados: confirmar PNG a 260 px con la copia de 520 px en `Large/`, y qué pasa con imágenes más anchas, JPG y GIF.
@@ -52,7 +53,7 @@ Lo más funcional posible sin complejizar la app.
 - Imágenes por arrastrar, elegir archivo o pegar (Cmd/Ctrl+V, clave para capturas de Ableton). Se convierten a PNG y se exportan en dos tamaños: 260 px de ancho en la carpeta de la lección y 520 px en `Large/` (si la imagen original es más chica, no se agranda).
 - Links entre páginas y a URLs externas (si Fase 0 confirma que funcionan).
 - **Exportar `.zip`**: el zip se llama `[Nombre del set] Lessons.zip` y contiene la carpeta `[Nombre del set] Lessons/` con los siete `.txt` (UTF-8 sin BOM, LF), las imágenes y la subcarpeta `Large/`. La app pide el nombre del set una sola vez.
-- **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Contemplá el problema de Windows: "Extraer todo" crea por defecto una carpeta con el nombre del zip y queda `X Lessons/X Lessons`, que Live no lee. Recomendá Live 12.4.5 o superior.
+- **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Contemplá el problema de Windows: "Extraer todo" crea por defecto una carpeta con el nombre del zip y queda `X Lessons/X Lessons`, que Live no lee. Aclará que funciona en Live 11 y 12, y recomendá 12.4.5 o superior.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
 - Borrador guardado automáticamente en el navegador (incluidas las imágenes).
 - Interfaz en español e inglés.
@@ -86,7 +87,7 @@ Lo más funcional posible sin complejizar la app.
 
 ## Criterios de terminado (v1)
 
-1. Una lección de 3+ páginas, con texto con formato, imagen pegada y links, creada en la app, exportada y descomprimida, se ve en Live 12.4.7 igual que en el editor. Verificalo vos con el control de la compu y mostrame capturas lado a lado.
+1. Una lección de 3+ páginas, con texto con formato, imagen pegada y links, creada en la app, exportada y descomprimida, se ve en Live 12.4.7 igual que en el editor, y también se abre bien en Live 11.3. Verificalo vos con el control de la compu y mostrame capturas lado a lado.
 2. Esa lección, arrastrada de vuelta a la app, se abre idéntica.
 3. Pegar desde un Google Doc con títulos, negritas y listas conserva lo que Live soporta. Como el formato de Live no tiene títulos, cada título pegado se convierte en una línea en negrita (igual que hace Ableton en sus lecciones).
 4. Funciona en Chrome, Safari y Firefox de escritorio, y en Safari (iPhone) y Chrome (Android): se puede crear una lección de punta a punta desde el celular.
