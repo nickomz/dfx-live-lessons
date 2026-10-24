@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { blocksToContent, contentToBlocks } from '../src/editor/convert';
 import JSZip from 'jszip';
 import { cleanSetName, exportFiles, exportZip, fromLesson, newLesson, newPage } from '../src/editor/document';
-import { findLessonFolder, readZip } from '../src/app/open';
+import { findLessonFolders, readZip } from '../src/app/open';
 import { readLessonFolder } from '../src/lesson';
 import { parseLesson, serializeLesson } from '../src/lesson';
 
@@ -112,7 +112,7 @@ describe('abrir una lección', () => {
 
   it('encuentra la carpeta "<Set> Lessons" dentro de un zip y toma el nombre del set', async () => {
     const zip = await exportZip({ ...newLesson(), pages: [newPage([], 'Uno')] }, 'Clase 03');
-    const folder = findLessonFolder(await readZip(zip))!;
+    const [folder] = findLessonFolders(await readZip(zip)) as [ReturnType<typeof findLessonFolders>[number]];
     expect(folder.setName).toBe('Clase 03');
     expect([...folder.files.keys()]).toContain('LessonsES.txt');
     const read = readLessonFolder(folder.files);
@@ -124,13 +124,35 @@ describe('abrir una lección', () => {
 
   it('ignora archivos de sistema y conserva las imágenes', () => {
     const enc = (s: string) => new TextEncoder().encode(s);
-    const folder = findLessonFolder(new Map([
+    const [folder] = findLessonFolders(new Map([
       ['MZ Lessons/LessonsES.txt', enc('$Page A\n')],
       ['MZ Lessons/img.png', new Uint8Array([1])],
       ['MZ Lessons/.DS_Store', new Uint8Array([0])],
       ['__MACOSX/MZ Lessons/._img.png', new Uint8Array([0])],
-    ]))!;
+    ])) as [ReturnType<typeof findLessonFolders>[number]];
     expect(folder.setName).toBe('MZ');
     expect([...folder.files.keys()].sort()).toEqual(['LessonsES.txt', 'img.png']);
+  });
+});
+
+describe('abrir la carpeta de un proyecto', () => {
+  const enc = (s: string) => new TextEncoder().encode(s);
+
+  it('encuentra cada lección del proyecto, con su nombre de set', () => {
+    const folders = findLessonFolders(new Map([
+      ['Clase Project/Clase.als', new Uint8Array([1])],
+      ['Clase Project/Clase Lessons/LessonsES.txt', enc('$Page A\n')],
+      ['Clase Project/Ejercicio 2 Lessons/LessonsES.txt', enc('$Page B\n')],
+      ['Clase Project/Ejercicio 2 Lessons/Large/img.png', new Uint8Array([2])],
+      ['Clase Project/Samples/kick.wav', new Uint8Array([3])],
+    ]));
+    expect(folders.map((f) => [f.setName, f.path, [...f.files.keys()]])).toEqual([
+      ['Clase', 'Clase Project/Clase Lessons', ['LessonsES.txt']],
+      ['Ejercicio 2', 'Clase Project/Ejercicio 2 Lessons', ['LessonsES.txt', 'Large/img.png']],
+    ]);
+  });
+
+  it('no encuentra nada si no hay ningún archivo de lección', () => {
+    expect(findLessonFolders(new Map([['Proyecto/set.als', new Uint8Array([1])], ['Proyecto/notas.txt', enc('hola')]]))).toEqual([]);
   });
 });

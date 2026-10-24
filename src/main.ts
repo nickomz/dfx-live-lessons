@@ -12,8 +12,8 @@ import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } fr
 import { Divider, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
-import { findLessonFolder, readDropped, readPickedFiles } from './app/open';
-import { readLessonFolder, type Lesson } from './lesson';
+import { findLessonFolders, readDropped, readPickedFiles } from './app/open';
+import { readLessonFolder } from './lesson';
 
 const icon = {
   folder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>',
@@ -39,10 +39,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button class="icon-btn" id="lessons-btn" aria-label="${t.lessons}" aria-haspopup="menu" aria-expanded="false">${icon.folder}</button>
       <div class="popover right" id="lessons-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="new-lesson">${icon.plus}${t.newLesson}</button>
-        <button class="menu-item" role="menuitem" id="open-lesson">${icon.upload}${t.openLesson}</button>
+        <button class="menu-item" role="menuitem" id="open-zip">${icon.upload}${t.openZip}</button>
+        <button class="menu-item desktop-only" role="menuitem" id="open-folder">${icon.folder}${t.openFolder}</button>
         <span class="menu-hint desktop-only">${t.dropHint}</span>
         <span class="menu-hint touch-only">${t.dropHintTouch}</span>
-        <input type="file" id="pick-files" multiple hidden>
+        <input type="file" id="pick-zip" accept=".zip,application/zip" hidden>
+        <input type="file" id="pick-folder" webkitdirectory hidden>
       </div>
     </div>
     <div class="anchor">
@@ -378,19 +380,21 @@ function closeLessonsMenu() {
   lessonsBtn.setAttribute('aria-expanded', 'false');
 }
 
-/** Si los idiomas difieren, pregunta cuál editar. Devuelve el nombre de archivo elegido. */
-function chooseLanguage(lessons: Map<string, Lesson>): Promise<string | null> {
+/** Diálogo para elegir una opción de una lista. Devuelve el valor elegido o null. */
+function choose(title: string, help: string, options: { value: string; label: string; detail: string }[]): Promise<string | null> {
   const dialog = document.createElement('dialog');
   dialog.className = 'dlg';
-  dialog.innerHTML = `<div class="dlg-body"><div class="dlg-head"><h2>${t.languagesDifferTitle}</h2><p>${t.languagesDifferHelp}</p></div><div class="lang-list"></div><button class="ghost" value="">${t.cancel}</button></div>`;
+  dialog.innerHTML = `<div class="dlg-body"><div class="dlg-head"><h2></h2><p></p></div><div class="lang-list"></div><button class="ghost" value="">${t.cancel}</button></div>`;
+  dialog.querySelector('h2')!.textContent = title;
+  dialog.querySelector('p')!.textContent = help;
   const list = dialog.querySelector('.lang-list')!;
-  for (const [file, l] of lessons) {
+  for (const o of options) {
     const b = document.createElement('button');
     b.className = 'menu-item lang';
-    b.value = file;
-    const first = l.pages[0]?.title ?? '';
-    b.innerHTML = `<b>${file.replace(/^Lessons|\.txt$/g, '')}</b><span></span>`;
-    b.querySelector('span')!.textContent = first;
+    b.value = o.value;
+    b.innerHTML = '<b></b><span></span>';
+    b.querySelector('b')!.textContent = o.label;
+    b.querySelector('span')!.textContent = o.detail;
     list.append(b);
   }
   document.body.append(dialog);
@@ -411,27 +415,46 @@ function chooseLanguage(lessons: Map<string, Lesson>): Promise<string | null> {
 }
 
 async function openFiles(all: Map<string, Uint8Array>) {
-  const folder = findLessonFolder(all);
-  if (!folder) return alert(t.notALesson);
+  // Si no hay ninguna lección, no se toca la que está abierta.
+  const folders = findLessonFolders(all);
+  if (!folders.length) return alert(t.notALesson);
+  let folder = folders[0]!;
+  if (folders.length > 1) {
+    // Por ejemplo, la carpeta de un proyecto con una lección por cada .als.
+    const pick = await choose(
+      t.whichLessonTitle,
+      t.whichLessonHelp,
+      folders.map((f, i) => ({ value: String(i), label: f.setName || t.untitledSet, detail: f.path })),
+    );
+    if (pick === null) return;
+    folder = folders[Number(pick)]!;
+  }
   const read = readLessonFolder(folder.files);
   const keys = [...read.lessons.keys()];
   let key: string | null | undefined = ['LessonsES.txt', 'LessonsEN.txt'].find((k) => read.lessons.has(k)) ?? keys[0];
-  if (read.languagesDiffer) key = await chooseLanguage(read.lessons);
+  if (read.languagesDiffer) {
+    key = await choose(
+      t.languagesDifferTitle,
+      t.languagesDifferHelp,
+      [...read.lessons].map(([file, l]) => ({ value: file, label: file.replace(/^Lessons|\.txt$/g, ''), detail: l.pages[0]?.title ?? '' })),
+    );
+  }
   if (!key) return;
   if (lesson.pages.some(hasContent) && !confirm(t.newLessonConfirm)) return;
   loadLesson(fromLesson(read.lessons.get(key)!, { assets: read.assets, languagesDiffer: read.languagesDiffer, setName: folder.setName }));
 }
 
-// El botón elige un .zip (o los archivos de la carpeta); las carpetas se abren arrastrándolas.
-const pickFiles = $<HTMLInputElement>('pick-files');
-$('open-lesson').addEventListener('click', () => {
-  closeLessonsMenu();
-  pickFiles.click();
-});
-pickFiles.addEventListener('change', async () => {
-  if (pickFiles.files?.length) await openFiles(await readPickedFiles(pickFiles.files));
-  pickFiles.value = '';
-});
+for (const [button, inputId] of [['open-zip', 'pick-zip'], ['open-folder', 'pick-folder']] as const) {
+  const input = $<HTMLInputElement>(inputId);
+  $(button).addEventListener('click', () => {
+    closeLessonsMenu();
+    input.click();
+  });
+  input.addEventListener('change', async () => {
+    if (input.files?.length) await openFiles(await readPickedFiles(input.files));
+    input.value = '';
+  });
+}
 
 // Soltar una carpeta o un .zip en cualquier parte de la ventana (fuera de los diálogos).
 const hasFiles = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');

@@ -7,22 +7,30 @@ const IGNORED = /(^|\/)(\.DS_Store|__MACOSX\/.*|Thumbs\.db)$/;
 export interface OpenedFolder {
   /** Nombre del set, si la carpeta se llama "<Set> Lessons". */
   setName: string;
+  /** Ruta de la carpeta de la lección dentro de lo que se abrió ("" si estaba en la raíz). */
+  path: string;
   /** Archivos por ruta relativa a la carpeta de la lección. */
   files: Map<string, Uint8Array>;
 }
 
-/** Busca la carpeta de la lección dentro de un conjunto de archivos (rutas con "/"). */
-export function findLessonFolder(all: Map<string, Uint8Array>): OpenedFolder | null {
-  const lessonPath = [...all.keys()].filter((p) => !IGNORED.test(p)).find((p) => LESSON_FILE.test(p));
-  if (lessonPath === undefined) return null;
-  const dir = lessonPath.includes('/') ? lessonPath.slice(0, lessonPath.lastIndexOf('/') + 1) : '';
-  const files = new Map<string, Uint8Array>();
-  for (const [path, data] of all) {
-    if (path.startsWith(dir) && !IGNORED.test(path)) files.set(path.slice(dir.length), data);
+/**
+ * Busca las carpetas de lección dentro de un conjunto de archivos (rutas con "/"): la
+ * carpeta "<Set> Lessons" misma, su .zip o la carpeta del proyecto que las contiene.
+ */
+export function findLessonFolders(all: Map<string, Uint8Array>): OpenedFolder[] {
+  const dirs = new Set<string>();
+  for (const p of all.keys()) {
+    if (!IGNORED.test(p) && LESSON_FILE.test(p)) dirs.add(p.includes('/') ? p.slice(0, p.lastIndexOf('/') + 1) : '');
   }
-  const folderName = dir.replace(/\/$/, '').split('/').pop() ?? '';
-  const setName = / Lessons$/.test(folderName) ? folderName.replace(/ Lessons$/, '') : '';
-  return { setName, files };
+  return [...dirs].sort().map((dir) => {
+    const files = new Map<string, Uint8Array>();
+    for (const [path, data] of all) {
+      if (path.startsWith(dir) && !IGNORED.test(path)) files.set(path.slice(dir.length), data);
+    }
+    const folderName = dir.replace(/\/$/, '').split('/').pop() ?? '';
+    const setName = / Lessons$/.test(folderName) ? folderName.replace(/ Lessons$/, '') : '';
+    return { setName, path: dir.replace(/\/$/, ''), files };
+  });
 }
 
 export async function readZip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
