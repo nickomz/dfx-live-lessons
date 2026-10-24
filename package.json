@@ -17,5 +17,16 @@
     "typescript": "7.0.2",
     "vite": "8.3.4",
     "vitest": "5.0.3"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-bold": "3.31.4",
+    "@tiptap/extension-document": "3.31.4",
+    "@tiptap/extension-italic": "3.31.4",
+    "@tiptap/extension-paragraph": "3.31.4",
+    "@tiptap/extension-text": "3.31.4",
+    "@tiptap/extensions": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "jszip": "3.10.2"
   }
 }
