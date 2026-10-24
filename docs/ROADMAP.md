@@ -22,7 +22,7 @@ Definir qué se construye, para quién y cómo se ve, antes de programar.
 
 - [x] Brief del proyecto (`docs/BRIEF.md`)
 - [x] Investigación sobre las lecciones de Live y la Learn View
-- [x] Diseño de referencia, escritorio y celular: https://claude.ai/artifact/F9z9edTctJQf9rMdazNin1
+- [x] Diseño de referencia minimalista, escritorio y celular: https://claude.ai/artifact/Pqcg8jZ1uCjEPrLNEM2kHe
 - [x] Versiones soportadas: Live 11 o superior, imágenes PNG
 - [x] Licencia MIT
 - [x] Logo de DFX en el repo (`assets/brand/dfx-logo.svg`)

@@ -47,6 +47,7 @@ Entregable: un `docs/formato.md` con la sintaxis soportada (probada / no probada
 Lo más funcional posible sin complejizar la app.
 
 - **El editor es el preview.** Se escribe directamente sobre una réplica de cómo se ve la lección en Live: mismo ancho de panel, estilo, colores y botones de navegación entre páginas. La fuente de Ableton es propietaria; usá Jost (Google Fonts), que es la alternativa libre más cercana.
+- **Interfaz mínima**, centrada en el panel de Live (diseño de referencia: https://claude.ai/artifact/Pqcg8jZ1uCjEPrLNEM2kHe). Fijos en pantalla solo están el logo, el botón de lecciones (carpeta: nueva / abrir) y Exportar. El título de la página se edita en la cabecera del panel; las páginas se navegan con los botones del panel y se administran tocando "1 / N"; el formato aparece al seleccionar texto o en una línea vacía. Lo que se exporta se muestra solo al pasar el mouse por Exportar.
 - Solo se pueden aplicar los formatos que Live soporta (lo define la Fase 0). Nada de opciones que después no se vean en Live.
 - Páginas: agregar, quitar, reordenar y renombrar.
 - **Pegar con formato** desde Google Docs y Notion, convirtiendo a lo que Live soporte y descartando el resto.
@@ -57,7 +58,7 @@ Lo más funcional posible sin complejizar la app.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
 - Borrador guardado automáticamente en el navegador (incluidas las imágenes). Se trabaja **una lección a la vez**.
 - Interfaz en español e inglés.
-- **Funciona bien en el celular**, con una interfaz simple y moderna. Referencia de diseño (pantallas de escritorio y de celular): https://claude.ai/artifact/F9z9edTctJQf9rMdazNin1
+- **Funciona bien en el celular**, con una interfaz simple y moderna. Referencia de diseño (pantallas de escritorio y de celular): https://claude.ai/artifact/Pqcg8jZ1uCjEPrLNEM2kHe
   - El panel de la lección se muestra a tamaño real y la barra de formato queda pegada arriba del teclado, con botones de al menos 44 px.
   - Las páginas se manejan desde un panel que sube desde abajo: reordenar manteniendo apretado y arrastrando, agregar, renombrar y borrar.
   - Imágenes desde la cámara, la galería o pegando una captura.
