@@ -1,0 +1,9 @@
+$Page Links nuevos
+$TargetName Links
+$Link Mandar un email <mailto:prueba@ejemplo.com>
+
+$Link Abrir Ejercicio 2 con .als <Set:Ejercicio 2.als>
+
+$Link Abrir Ejercicio 2 sin .als <Set:Ejercicio 2>
+
+$Link Abrir un Set que no existe <Set:No existe.als>

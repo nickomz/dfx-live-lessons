@@ -41,7 +41,7 @@ Confirmar en Live real cómo se ve y se comporta cada elemento del formato. La h
 - [x] Probar acentos, ñ y comillas; BOM y saltos de línea de Windows; qué pasa con Save As y Collect All.
 - [x] Sacar capturas de referencia del panel (`docs/capturas/`).
 - [ ] Sin internet, `Large/` en Live 12 con Retina y Windows: quedaron sin probar (ver `docs/formato.md`).
-- [ ] Probar en Live 12.4.7 y 11.3 los links `mailto:` y `Set:` a un Set de la misma carpeta, y qué pasa si el Set no existe.
+- [x] Probar en Live 12.4.7 y 11.3 los links `mailto:` y `Set:` a un Set de la misma carpeta, y qué pasa si el Set no existe.
 
 Resultado: [`docs/formato.md`](formato.md), aprobado por Nicko.
 

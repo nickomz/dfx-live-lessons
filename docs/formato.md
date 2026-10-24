@@ -61,10 +61,12 @@ Conclusión para la app: toda imagen se convierte a **PNG de 260 px de ancho** (
 | A una web con http | `$Link texto <http://...>` | **No abrió nada** | No probado |
 | Link con texto en negrita | `$Link *texto* <...>` | Funciona | No probado |
 | Imagen como link | `$Link imagen.png <...>` | Funciona: clic en la imagen | No probado |
-| A un email | `$Link texto <mailto:nombre@dominio.com>` | No probado | No probado |
-| A otro Set del proyecto | `$Link texto <Set:Ejercicio 2.als>` | No probado (falta también ver qué pasa si el Set no existe) | No probado |
+| A un email | `$Link texto <mailto:nombre@dominio.com>` | Funciona: abre el programa de correo predeterminado (en la Mac de prueba, Chrome) | Funciona |
+| A otro Set del proyecto | `$Link texto <Set:Ejercicio 2.als>` | Funciona: Live abre ese Set. Si el Set no tiene lección propia, el panel sigue mostrando la lección anterior | Funciona |
+| A otro Set sin `.als` | `$Link texto <Set:Ejercicio 2>` | **No funciona**: error "Failed to resolve the link to Set:Ejercicio 2." | No funciona, mismo error |
+| A un Set que no existe | `$Link texto <Set:No existe.als>` | Error "Failed to resolve the link to Set:No existe.als."; Live sigue con el set abierto, no se cuelga | Igual |
 
-Los links se ven subrayados. Conclusión para la app: links a páginas y a `https://`. Si el docente pega un link `http://`, se pasa a `https://`. Los links `mailto:` y `Set:` están decididos para v1 pero todavía no se probaron en Live.
+Los links se ven subrayados. Conclusión para la app: links a páginas y a `https://`. Si el docente pega un link `http://`, se pasa a `https://`. Links `mailto:` y `Set:` también (probados el 24/10/2026 con un Set "Ejercicio 2" en la misma carpeta del proyecto). En `Set:` la app **siempre** agrega `.als`: sin la extensión, Live da error. Si el Set no existe, Live solo muestra un aviso.
 
 ## Cómo se ve el panel
 
@@ -85,6 +87,10 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live11-01-formato.png](capturas/live11-01-formato.png) | Formato de texto (Live 11) |
 | [live11-02-imagenes.png](capturas/live11-02-imagenes.png) | Imagen de `Large/` en uso (Live 11) |
 | [live11-03-links.png](capturas/live11-03-links.png) | Links (Live 11) |
+| [live12-06-links-email-set.png](capturas/live12-06-links-email-set.png) | Links a email y a otro Set (Live 12) |
+| [live12-07-set-sin-als-error.png](capturas/live12-07-set-sin-als-error.png) | Error con un link `Set:` sin `.als` (Live 12) |
+| [live12-08-set-inexistente-error.png](capturas/live12-08-set-inexistente-error.png) | Error con un Set que no existe (Live 12) |
+| [live11-04-set-inexistente-error.png](capturas/live11-04-set-inexistente-error.png) | Error con un Set que no existe (Live 11) |
 
 ## Comportamiento de Live con la carpeta de la lección
 
