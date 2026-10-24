@@ -7,7 +7,7 @@ Cada etapa termina en algo que Nicko puede ver y aprobar antes de pasar a la sig
 | Etapa | Estado |
 |---|---|
 | 0. Estrategia | Terminada |
-| 1. Prueba en Live | En curso |
+| 1. Prueba en Live | Terminada |
 | 2. El motor | Pendiente |
 | 3. Primera versión mínima | Pendiente |
 | 4. Versión completa (v1) | Pendiente |
@@ -36,10 +36,13 @@ Definir qué se construye, para quién y cómo se ve, antes de programar.
 
 Confirmar en Live real cómo se ve y se comporta cada elemento del formato. La hace Claude con el control de la compu; no es código.
 
-- Probar en Live 12.4.7 cada elemento: negrita, cursiva, viñetas, imágenes (260 px, `Large/`, más anchas), divisor, links entre páginas y a URLs (YouTube).
-- Repetir lo esencial en Live 11.3.
-- Probar acentos, ñ y comillas; UTF-8 sin BOM; sin internet; qué pasa con Save As y Collect All.
-- Sacar capturas de referencia del panel.
+- [x] Probar en Live 12.4.7 cada elemento: negrita, cursiva, viñetas, imágenes (260 px, `Large/`, más anchas, JPG, GIF), divisor, links entre páginas y a URLs (YouTube).
+- [x] Repetir lo esencial en Live 11.3.
+- [x] Probar acentos, ñ y comillas; BOM y saltos de línea de Windows; qué pasa con Save As y Collect All.
+- [x] Sacar capturas de referencia del panel (`docs/capturas/`).
+- [ ] Sin internet, `Large/` en Live 12 con Retina y Windows: quedaron sin probar (ver `docs/formato.md`).
+
+Resultado: [`docs/formato.md`](formato.md), aprobado por Nicko.
 
 **Termina cuando:** Nicko revisa `docs/formato.md` con la sintaxis probada y las capturas.
 
