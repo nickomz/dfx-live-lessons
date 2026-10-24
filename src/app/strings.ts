@@ -69,6 +69,8 @@ export const t = {
   linkOpen: 'Abrir ↗',
   linkGoToPage: 'Ir a la página',
   linkApply: 'Aplicar',
+  linkBadUrl: 'Esa dirección no parece válida. Revisá que no tenga espacios y que tenga un dominio (por ejemplo, youtube.com).',
+  linkBadEmail: 'Ese email no parece válido. Revisalo (por ejemplo, nombre@dominio.com).',
   image: 'Imagen',
   imageError: 'No pudimos abrir esa imagen. Probá con un PNG o JPG.',
   buyCoffee: 'Comprame un cafecito', // en inglés: "Buy me a coffee", con el link links.donate.en

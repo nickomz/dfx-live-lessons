@@ -12,6 +12,8 @@ interface LinkOptions {
   current: () => number;
 }
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const KINDS: { kind: LinkKind; label: string }[] = [
   { kind: 'page', label: t.linkPage },
   { kind: 'web', label: t.linkWeb },
@@ -24,7 +26,7 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
   dialog.className = 'dlg';
   dialog.setAttribute('aria-labelledby', 'link-title');
   dialog.innerHTML = `
-    <form method="dialog" class="dlg-body">
+    <form method="dialog" class="dlg-body" novalidate>
       <h2 id="link-title">${t.linkTitle}</h2>
       <div class="seg" role="tablist">
         ${KINDS.map((k) => `<button type="button" role="tab" data-kind="${k.kind}">${k.label}</button>`).join('')}
@@ -35,18 +37,19 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
       </div>
       <div data-for="web">
         <label class="field-label" for="link-web">${t.linkWebLabel}</label>
-        <div class="field"><input id="link-web" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/…"></div>
+        <div class="field"><input id="link-web" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/…"></div>
         <p class="small">${t.linkWebHelp}</p>
       </div>
       <div data-for="email">
         <label class="field-label" for="link-email">${t.linkEmailLabel}</label>
-        <div class="field"><input id="link-email" type="email" inputmode="email" autocomplete="off" spellcheck="false" placeholder="nombre@ejemplo.com"></div>
+        <div class="field"><input id="link-email" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="nombre@ejemplo.com"></div>
       </div>
       <div data-for="set">
         <label class="field-label" for="link-set">${t.linkSetLabel}</label>
         <div class="field"><input id="link-set" autocomplete="off" spellcheck="false" placeholder="Ejercicio 2"><span>.als</span></div>
         <p class="small">${t.linkSetHelp}</p>
       </div>
+      <p class="field-error" id="link-error" role="alert" hidden></p>
       <div class="dlg-actions">
         <button type="button" class="ghost" id="link-remove">${t.linkRemove}</button>
         <button type="button" class="ghost" id="link-cancel">${t.cancel}</button>
@@ -73,8 +76,32 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
       b.setAttribute('aria-selected', String(b.dataset.kind === kind));
     }
     for (const box of dialog.querySelectorAll<HTMLElement>('[data-for]')) box.hidden = box.dataset.for !== kind;
-    const v = value();
-    q<HTMLButtonElement>('#link-ok').disabled = !v || (kind === 'email' && !v.includes('@'));
+    q<HTMLButtonElement>('#link-ok').disabled = !value();
+    q('#link-error').hidden = true;
+  }
+
+  /** Completa lo que escribió el docente y devuelve el destino, o un error si no es válido. */
+  function resolveTarget(): { target: string } | { error: string } {
+    let v = value();
+    let k = kind;
+    // En "Web", algo como nombre@dominio.com es un email.
+    if (k === 'web' && EMAIL.test(v.replace(/^mailto:/i, ''))) k = 'email';
+    if (k === 'email') {
+      v = v.replace(/^mailto:/i, '');
+      return EMAIL.test(v) ? { target: buildTarget('email', v) } : { error: t.linkBadEmail };
+    }
+    if (k === 'web') {
+      // Sin esquema se le antepone https:// (y http:// pasa a https://) dentro de buildTarget.
+      const target = buildTarget('web', v);
+      try {
+        const url = new URL(target);
+        if (/\s/.test(v) || !url.hostname.includes('.')) throw new Error();
+        return { target };
+      } catch {
+        return { error: t.linkBadUrl };
+      }
+    }
+    return { target: buildTarget(k, v) };
   }
 
   function select(next: LinkKind) {
@@ -95,14 +122,21 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
     e.preventDefault();
     const v = value();
     if (!v) return;
-    const target = buildTarget(kind, v);
+    const resolved = resolveTarget();
+    if ('error' in resolved) {
+      const err = q('#link-error');
+      err.textContent = resolved.error;
+      err.hidden = false;
+      return;
+    }
+    const { target } = resolved;
     const chain = editor.chain().focus();
     const { empty } = editor.state.selection;
     if (editor.isActive('link')) {
       chain.extendMarkRange('link').setMark('link', { target }).run();
     } else if (empty) {
       // Sin texto seleccionado: se escribe un texto para el link (el título, la dirección, el nombre).
-      const label = kind === 'page' ? (getPages().find((p) => p.target === v)?.title ?? v) : v.replace(/^https?:\/\//, '');
+      const label = kind === 'page' ? (getPages().find((p) => p.target === v)?.title ?? v) : v.replace(/^(https?:\/\/|mailto:)/i, '');
       chain.insertContent({ type: 'text', text: label, marks: [{ type: 'link', attrs: { target } }] }).run();
     } else {
       chain.setMark('link', { target }).run();

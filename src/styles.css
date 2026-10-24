@@ -233,3 +233,4 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (hover: none) and (pointer: coarse) {
   .link-actions button { min-height: 44px; padding: 0 12px; }
 }
+.field-error { margin: 0; font-size: 13px; line-height: 1.4; color: #ffb4a8; }
