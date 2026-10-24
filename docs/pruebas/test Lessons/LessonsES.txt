@@ -1,0 +1,54 @@
+$Page Formato
+$TargetName Formato
+*TITULO EN NEGRITA*
+
+Texto normal con *negrita en el medio* y /cursiva en el medio/ de una frase.
+
+-> Viñeta uno
+-> Viñeta dos con *negrita*
+
+Acentos: áéíóú ÁÉÍÓÚ ñÑ ü ¿¡ “comillas” ‘simples’ — raya
+
+Barra suelta: Pads/texturas y 1/4 de nota.
+
+Divider.tif
+
+Texto después del divisor.
+
+$Comment esto no debería verse
+
+$Page Imágenes
+$TargetName Imagenes
+PNG 260 con copia en Large:
+
+img260.png
+
+PNG de 400 px de ancho:
+
+img400.png
+
+JPG:
+
+img.jpg
+
+GIF:
+
+img.gif
+
+$Page Links
+$TargetName Links
+$Link Ir a Formato (GotoPage) <GotoPage:Formato>
+
+$Link Ableton con https <https://www.ableton.com>
+
+$Link YouTube de Ableton <https://www.youtube.com/@Ableton>
+
+$Link Ableton con http <http://www.ableton.com>
+
+$Link *Link en negrita* <GotoPage:Final>
+
+$Link img260.png <GotoPage:Final>
+
+$Page Final
+$TargetName Final
+Última página. El contador debería decir 4 / 4.
