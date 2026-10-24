@@ -55,7 +55,7 @@ Lo más funcional posible sin complejizar la app.
 - **Exportar `.zip`**: el zip se llama `[Nombre del set] Lessons.zip` y contiene la carpeta `[Nombre del set] Lessons/` con los siete `.txt` (UTF-8 sin BOM, LF), las imágenes y la subcarpeta `Large/`. La app pide el nombre del set una sola vez.
 - **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Contemplá el problema de Windows: "Extraer todo" crea por defecto una carpeta con el nombre del zip y queda `X Lessons/X Lessons`, que Live no lee. Aclará que funciona en Live 11 o superior y avisá lo de 12.4.0–12.4.4.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
-- Borrador guardado automáticamente en el navegador (incluidas las imágenes).
+- Borrador guardado automáticamente en el navegador (incluidas las imágenes). Se trabaja **una lección a la vez**: si el docente toca "Nueva lección" o abre otra sin haber exportado la actual, la app avisa antes de descartar el borrador.
 - Interfaz en español e inglés.
 - **Funciona bien en el celular**, con una interfaz simple y moderna. Referencia de diseño (pantallas de escritorio y de celular): https://claude.ai/artifact/F9z9edTctJQf9rMdazNin1
   - El panel de la lección se muestra a tamaño real y la barra de formato queda pegada arriba del teclado, con botones de al menos 44 px.
@@ -68,6 +68,7 @@ Lo más funcional posible sin complejizar la app.
 - Traducción automática ES↔EN (requiere una API con clave y un backend).
 - Búsqueda de imágenes en Unsplash o Pexels (mismo problema de clave).
 - Links que cargan otro set o abren carpetas del browser de Live.
+- Lista de lecciones guardadas en el navegador (una por set), para pasar de una a otra sin exportar.
 - Escribir directo en la carpeta del proyecto. Se descartó: solo funciona en Chrome y Edge, y el zip es el flujo único.
 
 ## Técnica

@@ -102,3 +102,4 @@ Lo que el brief deja afuera de v1, priorizado según lo que pidan los usuarios:
 - Traducción automática ES↔EN.
 - Búsqueda de imágenes en Unsplash o Pexels.
 - Links que abren otro set o carpetas del browser de Live.
+- Lista de lecciones guardadas (una por set), para pasar de una a otra sin exportar. En v1 se trabaja una lección a la vez.
