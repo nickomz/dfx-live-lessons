@@ -9,7 +9,8 @@ import logoUrl from '../assets/brand/dfx-logo.svg';
 import { links } from './app/links';
 import { t } from './app/strings';
 import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } from './editor/document';
-import { Divider, LessonImage, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
+import { Divider, LessonImage, LessonLink, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
+import { setupLinks } from './app/links-dialog';
 import { imageName, processImage } from './app/images';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
@@ -29,6 +30,7 @@ const icon = {
   handle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
   upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>',
   image: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-8 8"/></svg>',
+  link: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
   trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
 };
 
@@ -76,12 +78,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div class="bubble" id="bubble" role="toolbar" aria-label="Formato" hidden>
         <button class="b" id="fmt-bold" aria-label="${t.bold}" aria-pressed="false">B</button>
         <button class="i" id="fmt-italic" aria-label="${t.italic}" aria-pressed="false">I</button>
+        <button id="fmt-link" aria-label="${t.link}" aria-pressed="false">${icon.link}</button>
       </div>
       <button class="inserter" id="inserter" aria-label="${t.insert}" aria-haspopup="menu" aria-expanded="false" hidden>${icon.plus}</button>
       <div class="popover insert-menu" id="insert-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="ins-bullet">${icon.bullet}${t.bullet}</button>
         <button class="menu-item" role="menuitem" id="ins-image">${icon.image}${t.image}</button>
         <button class="menu-item" role="menuitem" id="ins-divider">${icon.divider}${t.divider}</button>
+        <button class="menu-item" role="menuitem" id="ins-link">${icon.link}${t.link}</button>
         <input type="file" id="pick-image" accept="image/*" multiple hidden>
       </div>
       <div class="popover lesson.pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
@@ -112,6 +116,7 @@ const editor = new Editor({
     Divider,
     Preserved,
     LessonImage.configure({ resolve: (file) => imageUrl(file) }),
+    LessonLink,
     PreservedInline,
     UndoRedo,
     Placeholder.configure({ placeholder: t.placeholder }),
@@ -297,7 +302,8 @@ function updateFloating() {
   const { selection } = editor.state;
   const focused = editor.isFocused || bubble.contains(document.activeElement) || inserter.contains(document.activeElement);
 
-  if (focused && !selection.empty && selection.$from.parent.type.name === 'paragraph') {
+  // La barrita aparece con texto seleccionado o con el cursor dentro de un link (para editarlo).
+  if (focused && (!selection.empty || editor.isActive('link')) && selection.$from.parent.type.name === 'paragraph') {
     const start = editor.view.coordsAtPos(selection.from);
     const end = editor.view.coordsAtPos(selection.to);
     bubble.hidden = false;
@@ -308,6 +314,7 @@ function updateFloating() {
     bubble.style.top = `${above < 34 ? end.bottom - wrap.top + 8 : above}px`;
     $('fmt-bold').setAttribute('aria-pressed', String(editor.isActive('bold')));
     $('fmt-italic').setAttribute('aria-pressed', String(editor.isActive('italic')));
+    $('fmt-link').setAttribute('aria-pressed', String(editor.isActive('link')));
   } else {
     bubble.hidden = true;
   }
@@ -328,6 +335,12 @@ function updateFloating() {
 for (const el of [bubble, inserter, insertMenu]) el.addEventListener('mousedown', (e) => e.preventDefault());
 $('fmt-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
 $('fmt-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
+const { openLinkDialog } = setupLinks({ editor, getPages: () => lesson.pages, current: () => current });
+$('fmt-link').addEventListener('click', () => openLinkDialog());
+$('ins-link').addEventListener('click', () => {
+  closeInsert();
+  openLinkDialog();
+});
 
 inserter.addEventListener('click', () => {
   insertMenu.hidden = !insertMenu.hidden;

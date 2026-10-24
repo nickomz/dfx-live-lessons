@@ -206,3 +206,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .lv-editor .lv-image img { display: block; width: 100%; height: auto; }
 .lv-editor .lv-image.ProseMirror-selectednode { outline: 2px solid #fff; outline-offset: 2px; }
 .lv-editor .lv-image.missing { padding: 10px; background: #5a5a5a; color: #e0e0e0; font: 11px Inter, sans-serif; border-radius: 4px; }
+
+/* Links: subrayados, como en Live */
+.lv-editor .lv-link { text-decoration: underline; text-underline-offset: 2px; color: var(--lv-strong); }
+
+/* Diálogo de links */
+.seg { display: flex; gap: 4px; background: var(--bg); border-radius: 999px; padding: 4px; }
+.seg button { flex: 1; height: 36px; border: 0; border-radius: 999px; background: transparent; color: var(--faint); font-size: 13px; font-weight: 500; }
+.seg button[aria-selected='true'] { background: var(--surface-2); color: #fff; }
+.field select { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: #fff; font: 15px Inter, sans-serif; }
+.field select option { background: #161616; }
+.dlg [data-for] { display: flex; flex-direction: column; gap: 8px; }
+.dlg [data-for] .field-label { margin-bottom: 0; }
+.bubble #fmt-link { display: grid; place-items: center; }

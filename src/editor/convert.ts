@@ -7,38 +7,62 @@
 import type { JSONContent } from '@tiptap/core';
 import { parseInlines, serializeBlock, serializeInlines, type Block, type Inline, type TextRun } from '../lesson';
 
-function runToNode(run: TextRun): JSONContent {
-  const marks = [];
+function runToNode(run: TextRun, target?: string): JSONContent {
+  const marks: JSONContent['marks'] = [];
+  if (target !== undefined) marks.push({ type: 'link', attrs: { target } });
   if (run.bold) marks.push({ type: 'bold' });
   if (run.italic) marks.push({ type: 'italic' });
   return marks.length ? { type: 'text', text: run.text, marks } : { type: 'text', text: run.text };
 }
 
 function inlinesToNodes(inlines: Inline[]): JSONContent[] {
-  return inlines.map((n) =>
-    n.type === 'text'
-      ? runToNode(n)
-      : { type: 'preservedInline', attrs: { source: n.type === 'rawLink' ? n.source : serializeInlines([n]) } },
-  );
+  return inlines.flatMap((n): JSONContent[] => {
+    if (n.type === 'text') return [runToNode(n)];
+    // Link con texto: el texto lleva la marca de link y se edita como cualquier texto.
+    if (n.type === 'link' && n.label.type === 'text') return n.label.runs.map((r) => runToNode(r, n.target));
+    // Link con imagen o de un tipo que el editor no ofrece: se conserva tal cual.
+    return [{ type: 'preservedInline', attrs: { source: n.type === 'rawLink' ? n.source : serializeInlines([n]) } }];
+  });
+}
+
+/** Agrega un tramo juntándolo con el anterior si tiene el mismo formato (texto canónico estable). */
+function pushRun(runs: TextRun[], run: TextRun) {
+  const prev = runs[runs.length - 1];
+  if (prev && !!prev.bold === !!run.bold && !!prev.italic === !!run.italic) prev.text += run.text;
+  else runs.push(run);
 }
 
 function nodesToInlines(nodes: JSONContent[] = []): Inline[] {
   const out: Inline[] = [];
+  let link: { target: string; runs: TextRun[] } | null = null;
+  const closeLink = () => {
+    if (link) out.push({ type: 'link', target: link.target, label: { type: 'text', runs: link.runs } });
+    link = null;
+  };
   for (const node of nodes) {
     if (node.type === 'preservedInline') {
+      closeLink();
       out.push(...parseInlines(String(node.attrs?.source ?? '')));
       continue;
     }
     if (node.type !== 'text' || !node.text) continue;
-    const marks = new Set((node.marks ?? []).map((m) => m.type));
+    const marks = node.marks ?? [];
     const run: TextRun = { type: 'text', text: node.text };
-    if (marks.has('bold')) run.bold = true;
-    if (marks.has('italic')) run.italic = true;
-    // Junta tramos seguidos con el mismo formato para que el texto canónico sea estable.
+    if (marks.some((m) => m.type === 'bold')) run.bold = true;
+    if (marks.some((m) => m.type === 'italic')) run.italic = true;
+    const target = marks.find((m) => m.type === 'link')?.attrs?.target as string | undefined;
+    if (target) {
+      if (link && link.target !== target) closeLink();
+      link ??= { target, runs: [] };
+      pushRun(link.runs, run);
+      continue;
+    }
+    closeLink();
     const prev = out[out.length - 1];
     if (prev?.type === 'text' && !!prev.bold === !!run.bold && !!prev.italic === !!run.italic) prev.text += run.text;
     else out.push(run);
   }
+  closeLink();
   return out;
 }
 

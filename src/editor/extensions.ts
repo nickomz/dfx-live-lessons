@@ -1,7 +1,7 @@
 // Nodos del editor. Solo existe lo que Live muestra (docs/formato.md): párrafos con
 // negrita y cursiva, viñetas y la línea divisoria. Lo demás se conserva como "preserved".
 
-import { InputRule, Node } from '@tiptap/core';
+import { InputRule, Mark, Node, mergeAttributes } from '@tiptap/core';
 import Paragraph from '@tiptap/extension-paragraph';
 import type { Block } from '../lesson';
 
@@ -130,5 +130,27 @@ export const LessonImage = Node.create<LessonImageOptions>({
     return src
       ? ['figure', { class: 'lv-image', contenteditable: 'false' }, ['img', { src, alt: String(node.attrs.alt ?? file), draggable: 'false' }]]
       : ['figure', { class: 'lv-image missing', contenteditable: 'false' }, `Falta la imagen ${file}`];
+  },
+});
+
+/** Link de Live ($Link texto <destino>): a otra página, a una web, a un email o a otro Set. */
+export const LessonLink = Mark.create({
+  name: 'link',
+  inclusive: false,
+  priority: 1100, // Envuelve a la negrita y la cursiva.
+  addAttributes() {
+    return {
+      target: {
+        default: '',
+        parseHTML: (el) => el.getAttribute('data-target'),
+        renderHTML: (attrs) => ({ 'data-target': attrs.target, title: attrs.target }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'span[data-target]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes({ class: 'lv-link' }, HTMLAttributes), 0];
   },
 });

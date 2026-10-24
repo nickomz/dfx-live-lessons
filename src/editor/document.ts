@@ -66,16 +66,37 @@ export function fromLesson(lesson: Lesson, extra: Partial<EditorLesson> = {}): E
 
 /** Pasa la lección del editor al modelo del motor, listo para escribir. */
 export function toLesson(edit: EditorLesson): Lesson {
+  const allBlocks = edit.pages.map((p) => contentToBlocks(p.doc.content));
+  // Páginas a las que apunta algún link interno: necesitan su $TargetName.
+  const linked = new Set(
+    allBlocks.flat().flatMap((b) =>
+      b.type === 'text' || b.type === 'bullet'
+        ? b.inlines.flatMap((n) => (n.type === 'link' && n.target.startsWith('GotoPage:') ? [n.target.slice(9)] : []))
+        : [],
+    ),
+  );
   const lesson: Lesson = {
     preamble: edit.preamble,
-    pages: edit.pages.map((p) => {
-      const blocks = contentToBlocks(p.doc.content);
-      // Las páginas leídas traen su $TargetName (o no lo tenían, y así siguen); las nuevas lo suman.
-      if (p.raw === undefined && !blocks.some((b) => b.type === 'target')) blocks.unshift({ type: 'target', name: p.target });
+    pages: edit.pages.map((p, i) => {
+      const blocks = allBlocks[i]!;
+      // Las páginas leídas traen su $TargetName (o no lo tenían, y así siguen, salvo que un
+      // link les apunte); las nuevas lo suman.
+      if (!blocks.some((b) => b.type === 'target') && (p.raw === undefined || linked.has(p.target))) {
+        blocks.unshift({ type: 'target', name: p.target });
+      }
       const title = p.title.trim() || 'Sin título';
       return p.raw !== undefined && p.rawTitle === p.title ? { title, raw: p.raw, blocks } : { title, blocks };
     }),
   };
+  // Probado en Live 12.4.7: si la última página no tiene ninguna línea después de su
+  // $TargetName (por ejemplo, una página nueva que quedó vacía), Live no carga la lección.
+  const last = lesson.pages[lesson.pages.length - 1];
+  const contentLines = () => {
+    const endsWithNewline = serializeText(lesson).endsWith('\n');
+    return last!.blocks.filter((b) => b.type !== 'target').length - (endsWithNewline ? 1 : 0);
+  };
+  while (last && contentLines() < 1) last.blocks.push({ type: 'blank' });
+
   if (edit.source) {
     lesson.source = edit.source;
   } else if (!serializeText(lesson).endsWith('\n')) {

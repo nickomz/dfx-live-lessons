@@ -98,6 +98,20 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live12-08-set-inexistente-error.png](capturas/live12-08-set-inexistente-error.png) | Error con un Set que no existe (Live 12) |
 | [live11-04-set-inexistente-error.png](capturas/live11-04-set-inexistente-error.png) | Error con un Set que no existe (Live 11) |
 | [live12-09-caracteres-sueltos.jpg](capturas/live12-09-caracteres-sueltos.jpg) | Barras, asteriscos, flechas y signos sueltos en texto común (Live 12) |
+| [live12-13-app-imagenes.jpg](capturas/live12-13-app-imagenes.jpg) | Imágenes exportadas por la app: un JPG y una de 400 px, convertidas a PNG (Live 12) |
+| [live12-14-app-links.jpg](capturas/live12-14-app-links.jpg) | Los cuatro tipos de link creados en la app (Live 12) |
+
+## Páginas vacías
+
+Probado el 24/10/2026 en Live 12.4.7:
+
+| Caso | Resultado |
+|---|---|
+| Página vacía en el medio (`$Page` + `$TargetName` y enseguida la página siguiente) | Funciona |
+| **Última página** sin ninguna línea después de su `$TargetName` | **Live no carga la lección**: abre "Pack Overview" y el link "Lessons in this Set" da "Failed to resolve the link". |
+| Última página con una línea en blanco después de su `$TargetName` | Funciona |
+
+La app agrega esa línea en blanco al exportar si la última página quedó vacía.
 
 ## Comportamiento de Live con la carpeta de la lección
 

@@ -71,6 +71,7 @@ describe('exportar', () => {
         '$Page Segunda',
         '$TargetName Pagina2',
         '',
+        '',
       ].join('\n'),
     );
   });
@@ -89,7 +90,7 @@ describe('zip', () => {
     expect(files).toEqual(
       ['DE', 'EN', 'ES', 'FR', 'IT', 'JA', 'ZH'].map((l) => `Clase 03 Lessons/Lessons${l}.txt`),
     );
-    expect(await zip.file('Clase 03 Lessons/LessonsES.txt')!.async('string')).toBe('$Page Uno\n$TargetName Pagina1\n');
+    expect(await zip.file('Clase 03 Lessons/LessonsES.txt')!.async('string')).toBe('$Page Uno\n$TargetName Pagina1\n\n');
   });
 });
 
