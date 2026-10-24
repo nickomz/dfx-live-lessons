@@ -60,7 +60,7 @@ Lo más funcional posible sin complejizar la app.
 - **Instrucciones en pantalla** después de descargar: dónde descomprimir, cómo debe quedar la estructura y cómo abrir la lección. Son las mismas para Mac y Windows: abrir el zip y arrastrar la carpeta de adentro al proyecto. Esa redacción evita el problema de Windows con "Extraer todo", que crea `X Lessons/X Lessons` y Live no lo lee. Aclará que cada `.als` lleva su propia lección (para otro set, se arma otra lección y se exporta aparte), que si se renombra el set o se hace Save As hay que renombrar o duplicar la carpeta de la lección, que funciona en Live 11 o superior y avisá lo de 12.4.0–12.4.4.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
 - Borrador guardado automáticamente en el navegador (incluidas las imágenes). Se trabaja **una lección a la vez**.
-- Interfaz en español e inglés.
+- Interfaz en español e inglés, con un selector **ES · EN** en el footer (en el celular, debajo del panel). Arranca en el idioma del navegador y recuerda la elección. Solo cambia los textos de la app, no el contenido de la lección.
 - **Funciona bien en el celular**, con una interfaz simple y moderna. Referencia de diseño (pantallas de escritorio y de celular): https://claude.ai/artifact/Pqcg8jZ1uCjEPrLNEM2kHe
   - El panel de la lección se muestra a tamaño real y la barra de formato queda pegada arriba del teclado, con botones de al menos 44 px.
   - Las páginas se manejan desde un panel que sube desde abajo: reordenar manteniendo apretado y arrastrando, agregar, renombrar y borrar.
