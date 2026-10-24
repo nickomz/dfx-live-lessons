@@ -152,11 +152,13 @@ export function setupExport({ getLesson, onChange, info, button }: ExportOptions
 
   button.addEventListener('click', () => {
     hide();
-    if (getLesson().setName) return void download();
-    nameInput.value = '';
+    // Siempre se confirma el nombre, con el último ya escrito: así se puede cambiar y no se
+    // exporta con un nombre viejo que no coincide con el .als.
+    nameInput.value = getLesson().setName;
     refreshName();
     nameDialog.showModal();
     nameInput.focus();
+    nameInput.select();
   });
 
   updateExportInfo();
