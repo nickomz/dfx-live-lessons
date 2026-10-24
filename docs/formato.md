@@ -103,7 +103,7 @@ Para las instrucciones de la app: si el docente renombra el set o hace Save As, 
 
 ## Pendiente
 
-- **Sin internet:** no se pudo confirmar. En el intento, internet volvió antes de que Live terminara de abrir el set.
+- ~~Sin internet~~: descartada. Nunca hubo problemas con lecciones sin conexión y el resultado no cambiaría el código; si un docente lo reporta, se suma una línea a las instrucciones.
 - **`Large/` en Live 12 con pantalla Retina:** no probado. En Live 11 funciona, y Ableton lo usa en sus propias lecciones de Live 12.
 - **Windows:** no probado (no hay una PC con Live).
 - **Live 9 y 10:** no instalados; fuera del alcance (la app soporta Live 11 o superior).
