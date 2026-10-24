@@ -6,6 +6,7 @@ import Italic from '@tiptap/extension-italic';
 import Text from '@tiptap/extension-text';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import logoUrl from '../assets/brand/dfx-logo.svg';
+import { links } from './app/links';
 import { t } from './app/strings';
 import { newPage, type EditorPage } from './editor/document';
 import { Divider, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
@@ -75,8 +76,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
   <footer class="foot">
     <span>${t.free}</span>
-    <a href="https://github.com/nickomz/dfx-live-lessons" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://cafecito.app/nickomz" target="_blank" rel="noopener">Cafecito</a>
+    <a href="${links.github}" target="_blank" rel="noopener">GitHub</a>
+    <a href="${links.cafecito}" target="_blank" rel="noopener">Cafecito</a>
+    <a href="${links.website}" target="_blank" rel="noopener">${new URL(links.website).host}</a>
     <span>${t.notAffiliated}</span>
   </footer>
 </div>`;
