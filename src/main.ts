@@ -76,7 +76,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
   <footer class="foot">
     <a href="${links.website}" target="_blank" rel="noopener">${new URL(links.website).host}</a>
-    <a href="${links.cafecito}" target="_blank" rel="noopener">${t.buyCoffee}</a>
+    <a href="${links.donate.es}" target="_blank" rel="noopener">${t.buyCoffee}</a>
     <a href="${links.github}" target="_blank" rel="noopener">GitHub</a>
     <span>${t.notAffiliated}</span>
   </footer>

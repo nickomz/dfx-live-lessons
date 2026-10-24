@@ -2,6 +2,10 @@
 
 export const links = {
   website: 'https://nickomz.com',
-  cafecito: 'https://cafecito.app/nickomz',
+  /** Donación según el idioma de la interfaz: Cafecito solo cobra en pesos argentinos. */
+  donate: {
+    es: 'https://cafecito.app/nickomz',
+    en: 'https://paypal.me/nickomz',
+  },
   github: 'https://github.com/nickomz/dfx-live-lessons',
 };
