@@ -100,6 +100,7 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live12-09-caracteres-sueltos.jpg](capturas/live12-09-caracteres-sueltos.jpg) | Barras, asteriscos, flechas y signos sueltos en texto común (Live 12) |
 | [live12-13-app-imagenes.jpg](capturas/live12-13-app-imagenes.jpg) | Imágenes exportadas por la app: un JPG y una de 400 px, convertidas a PNG (Live 12) |
 | [live12-14-app-links.jpg](capturas/live12-14-app-links.jpg) | Los cuatro tipos de link creados en la app (Live 12) |
+| [comparacion-panel-tramo7.png](capturas/comparacion-panel-tramo7.png) | El panel del editor (izquierda) al lado de Live 12: peso del texto, viñeta cuadrada y divisor |
 
 ## Páginas vacías
 
