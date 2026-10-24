@@ -3,6 +3,7 @@
 
 import { InputRule, Mark, Node, mergeAttributes } from '@tiptap/core';
 import Paragraph from '@tiptap/extension-paragraph';
+import { t } from '../app/strings';
 import { buildTarget, type Block } from '../lesson';
 
 /** Párrafo de Live. `bullet` lo convierte en viñeta ("-> " en el archivo). */
@@ -129,7 +130,7 @@ export const LessonImage = Node.create<LessonImageOptions>({
     const src = this.options.resolve(file);
     return src
       ? ['figure', { class: 'lv-image', contenteditable: 'false' }, ['img', { src, alt: String(node.attrs.alt ?? file), draggable: 'false' }]]
-      : ['figure', { class: 'lv-image missing', contenteditable: 'false' }, `Falta la imagen ${file}`];
+      : ['figure', { class: 'lv-image missing', contenteditable: 'false' }, t.imageMissing(file)];
   },
 });
 

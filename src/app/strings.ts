@@ -1,9 +1,11 @@
-// Textos de la interfaz. La versión en inglés llega en la etapa 4 (selector ES · EN).
+// Textos de la interfaz en español e inglés. Solo cambian la app, nunca el contenido de la
+// lección. El idioma arranca según el navegador y se recuerda la elección del selector.
 
-export const t = {
+const es = {
   lessons: 'Lecciones',
   newLesson: 'Nueva lección',
   newLessonConfirm: 'Se borra la lección actual. ¿Seguir?',
+  firstPage: 'Bienvenida',
   openZip: 'Abrir .zip',
   openFolder: 'Abrir carpeta',
   whichLessonTitle: 'Hay más de una lección acá',
@@ -40,13 +42,18 @@ export const t = {
   doneNotes:
     'Cada .als lleva su propia lección: para otro set, armá otra y exportala aparte. Si cambiás el nombre del set o hacés Save As, cambiá también el de la carpeta. Funciona en Live 11 o superior (si usás Live 12.4.0 a 12.4.4, actualizá a la última 12.4).',
   understood: 'Entendido',
+  lesson: 'Lección',
   pageTitle: 'Título de la página',
+  firstPageNav: 'Primera página',
+  prevPageNav: 'Página anterior',
+  nextPageNav: 'Página siguiente',
   untitled: 'Nueva página',
   placeholder: 'Escribí acá…',
   pages: 'Páginas',
   newPage: 'Nueva página',
   deletePage: 'Borrar página',
   deletePageConfirm: 'Esta página tiene contenido. ¿Borrarla?',
+  format: 'Formato',
   bold: 'Negrita',
   italic: 'Cursiva',
   insert: 'Insertar en esta línea',
@@ -59,10 +66,13 @@ export const t = {
   linkEmail: 'Email',
   linkSet: 'Otro Set',
   linkPageLabel: 'Página de esta lección',
+  linkThisPage: '(esta página)',
   linkWebLabel: 'Dirección web',
   linkWebHelp: 'Se abre en el navegador. Si pegás un link http://, se guarda como https://.',
   linkEmailLabel: 'Email',
+  linkEmailExample: 'nombre@ejemplo.com',
   linkSetLabel: 'Nombre del Set (.als)',
+  linkSetExample: 'Ejercicio 2',
   linkSetHelp: 'El Set tiene que estar en la misma carpeta del proyecto y el nombre tiene que coincidir exactamente.',
   linkRemove: 'Quitar',
   linkEdit: 'Editar',
@@ -72,6 +82,122 @@ export const t = {
   linkBadUrl: 'Esa dirección no parece válida. Revisá que no tenga espacios y que tenga un dominio (por ejemplo, youtube.com).',
   linkBadEmail: 'Ese email no parece válido. Revisalo (por ejemplo, nombre@dominio.com).',
   image: 'Imagen',
+  imageMissing: (file: string) => `Falta la imagen ${file}`,
   imageError: 'No pudimos abrir esa imagen. Probá con un PNG o JPG.',
-  buyCoffee: 'Comprame un cafecito', // en inglés: "Buy me a coffee", con el link links.donate.en
+  language: 'Idioma de la interfaz',
+  donate: 'Comprame un cafecito',
 };
+
+const en: typeof es = {
+  lessons: 'Lessons',
+  newLesson: 'New lesson',
+  newLessonConfirm: 'This will clear the current lesson. Continue?',
+  firstPage: 'Welcome',
+  openZip: 'Open .zip',
+  openFolder: 'Open folder',
+  whichLessonTitle: 'There is more than one lesson here',
+  whichLessonHelp: 'Which one do you want to open? Each .als in the project has its own.',
+  untitledSet: '(no name)',
+  dropHint: 'You can also drag the “… Lessons” folder or its .zip anywhere on the page.',
+  dropHintTouch: 'Choose the .zip from Files.',
+  notALesson: 'We couldn’t find a lesson in this file. Look for the folder ending in “Lessons” or its .zip.',
+  notALessonFolder: 'This folder doesn’t look like a lesson. Choose the folder ending in “Lessons”.',
+  languagesDifferTitle: 'This lesson has different texts per language',
+  languagesDifferHelp: 'Which one do you want to edit? When you export, that text replaces the other languages.',
+  replaceTranslations: 'This lesson had different texts per language. When you export, the text you edited replaces all languages. Continue?',
+  export: 'Export',
+  exportInfo: (zip: string) => [
+    `Downloads “${zip}”`,
+    'One lesson per set: it goes next to its .als',
+    '7 languages: ES · EN · DE · FR · IT · JA · ZH',
+    'Works in Live 11 or later',
+  ],
+  setNamePlaceholder: '[set name]',
+  setTitle: 'Which set is this lesson for?',
+  setHelp: 'Type the name of the .als file exactly, without the extension. Live only shows the lesson if it matches.',
+  setLabel: 'Set name',
+  setExample: 'My set',
+  setDrop: 'Or drop the .als here (or tap to choose it) and we’ll take its exact name. The file isn’t uploaded anywhere.',
+  folderWillBe: 'The folder will be called',
+  cancel: 'Cancel',
+  download: 'Download',
+  downloaded: 'Downloaded',
+  doneTitle: 'Now take it to Live',
+  step1: (folder: string) => `Double-click the zip. Inside is the “${folder}” folder.`,
+  step2: 'Drag that folder into the project, next to the .als.',
+  step3: 'Open the set in Live. The lesson appears on its own.',
+  doneNotes:
+    'Each .als has its own lesson: for another set, make another one and export it separately. If you rename the set or use Save As, rename the folder too. Works in Live 11 or later (if you’re on Live 12.4.0 to 12.4.4, update to the latest 12.4).',
+  understood: 'Got it',
+  lesson: 'Lesson',
+  pageTitle: 'Page title',
+  firstPageNav: 'First page',
+  prevPageNav: 'Previous page',
+  nextPageNav: 'Next page',
+  untitled: 'New page',
+  placeholder: 'Write here…',
+  pages: 'Pages',
+  newPage: 'New page',
+  deletePage: 'Delete page',
+  deletePageConfirm: 'This page has content. Delete it?',
+  format: 'Formatting',
+  bold: 'Bold',
+  italic: 'Italic',
+  insert: 'Insert on this line',
+  bullet: 'Bullet',
+  divider: 'Divider',
+  link: 'Link',
+  linkTitle: 'Link',
+  linkPage: 'Page',
+  linkWeb: 'Web',
+  linkEmail: 'Email',
+  linkSet: 'Other Set',
+  linkPageLabel: 'Page in this lesson',
+  linkThisPage: '(this page)',
+  linkWebLabel: 'Web address',
+  linkWebHelp: 'Opens in the browser. If you paste an http:// link, it’s saved as https://.',
+  linkEmailLabel: 'Email',
+  linkEmailExample: 'name@example.com',
+  linkSetLabel: 'Set name (.als)',
+  linkSetExample: 'Exercise 2',
+  linkSetHelp: 'The Set must be in the same project folder and the name must match exactly.',
+  linkRemove: 'Remove',
+  linkEdit: 'Edit',
+  linkOpen: 'Open ↗',
+  linkGoToPage: 'Go to page',
+  linkApply: 'Apply',
+  linkBadUrl: 'That address doesn’t look valid. Check it has no spaces and has a domain (for example, youtube.com).',
+  linkBadEmail: 'That email doesn’t look valid. Check it (for example, name@domain.com).',
+  image: 'Image',
+  imageMissing: (file: string) => `Missing image ${file}`,
+  imageError: 'We couldn’t open that image. Try a PNG or JPG.',
+  language: 'Interface language',
+  donate: 'Buy me a coffee',
+};
+
+export type Lang = 'es' | 'en';
+const KEY = 'dfx-lang';
+
+function initialLang(): Lang {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved === 'es' || saved === 'en') return saved;
+  } catch {
+    // Sin localStorage (modo privado, etc.): se usa el idioma del navegador.
+  }
+  return (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+}
+
+export const lang: Lang = initialLang();
+export const t = lang === 'es' ? es : en;
+
+/** Cambia el idioma y recarga la página (la lección se conserva en el borrador). */
+export function setLang(next: Lang) {
+  if (next === lang) return;
+  try {
+    localStorage.setItem(KEY, next);
+  } catch {
+    // Si no se puede guardar, el cambio dura hasta recargar.
+  }
+  location.reload();
+}

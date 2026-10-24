@@ -42,11 +42,11 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
       </div>
       <div data-for="email">
         <label class="field-label" for="link-email">${t.linkEmailLabel}</label>
-        <div class="field"><input id="link-email" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="nombre@ejemplo.com"></div>
+        <div class="field"><input id="link-email" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="${t.linkEmailExample}"></div>
       </div>
       <div data-for="set">
         <label class="field-label" for="link-set">${t.linkSetLabel}</label>
-        <div class="field"><input id="link-set" autocomplete="off" spellcheck="false" placeholder="Ejercicio 2"><span>.als</span></div>
+        <div class="field"><input id="link-set" autocomplete="off" spellcheck="false" placeholder="${t.linkSetExample}"><span>.als</span></div>
         <p class="small">${t.linkSetHelp}</p>
       </div>
       <p class="field-error" id="link-error" role="alert" hidden></p>
@@ -151,7 +151,7 @@ export function setupLinks({ editor, getPages, current }: LinkOptions) {
       ...pages.map((p, i) => {
         const o = document.createElement('option');
         o.value = p.target;
-        o.textContent = `${i + 1}. ${p.title || t.untitled}${i === current() ? ' (esta página)' : ''}`;
+        o.textContent = `${i + 1}. ${p.title || t.untitled}${i === current() ? ` ${t.linkThisPage}` : ''}`;
         return o;
       }),
     );

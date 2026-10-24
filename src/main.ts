@@ -7,7 +7,7 @@ import Text from '@tiptap/extension-text';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import logoUrl from '../assets/brand/dfx-logo.svg';
 import { links } from './app/links';
-import { t } from './app/strings';
+import { lang, setLang, t } from './app/strings';
 import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } from './editor/document';
 import { Divider, LessonImage, LessonLink, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
@@ -60,13 +60,13 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
   <main class="stage">
     <div class="panel-wrap" id="panel-wrap">
-      <article class="lv-panel" aria-label="Lección">
+      <article class="lv-panel" aria-label="${t.lesson}">
         <div class="lv-head">
           <span class="lv-cell close" aria-hidden="true">${icon.close}</span>
           <input class="lv-title" id="page-title" aria-label="${t.pageTitle}" maxlength="80">
-          <button class="lv-cell" id="nav-home" aria-label="Primera página">${icon.home}</button>
-          <button class="lv-cell" id="nav-prev" aria-label="Página anterior">${icon.prev}</button>
-          <button class="lv-cell" id="nav-next" aria-label="Página siguiente">${icon.next}</button>
+          <button class="lv-cell" id="nav-home" aria-label="${t.firstPageNav}">${icon.home}</button>
+          <button class="lv-cell" id="nav-prev" aria-label="${t.prevPageNav}">${icon.prev}</button>
+          <button class="lv-cell" id="nav-next" aria-label="${t.nextPageNav}">${icon.next}</button>
         </div>
         <div class="lv-body"><div id="editor"></div></div>
         <div class="lv-foot">
@@ -76,7 +76,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </div>
       </article>
 
-      <div class="bubble" id="bubble" role="toolbar" aria-label="Formato" hidden>
+      <div class="bubble" id="bubble" role="toolbar" aria-label="${t.format}" hidden>
         <button class="b" id="fmt-bold" aria-label="${t.bold}" aria-pressed="false">B</button>
         <button class="i" id="fmt-italic" aria-label="${t.italic}" aria-pressed="false">I</button>
         <button id="fmt-link" aria-label="${t.link}" aria-pressed="false">${icon.link}</button>
@@ -102,8 +102,13 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </main>
 
   <footer class="foot">
+    <div class="lang" role="group" aria-label="${t.language}">
+      <button id="lang-es" aria-pressed="${lang === 'es'}">ES</button>
+      <span aria-hidden="true">·</span>
+      <button id="lang-en" aria-pressed="${lang === 'en'}">EN</button>
+    </div>
     <a href="${links.website}" target="_blank" rel="noopener">${new URL(links.website).host}</a>
-    <a href="${links.donate.es}" target="_blank" rel="noopener">${t.buyCoffee}</a>
+    <a href="${links.donate[lang]}" target="_blank" rel="noopener">${t.donate}</a>
     <a href="${links.github}" target="_blank" rel="noopener">GitHub</a>
   </footer>
 </div>`;
@@ -111,7 +116,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 // Estado: las páginas de la lección y la que se está editando.
-let lesson: EditorLesson = newLesson();
+let lesson: EditorLesson = newLesson(t.firstPage);
 let current = 0;
 
 const editor = new Editor({
@@ -462,7 +467,7 @@ $('new-lesson').addEventListener('click', () => {
   lessonsMenu.hidden = true;
   lessonsBtn.setAttribute('aria-expanded', 'false');
   if (lesson.pages.some(hasContent) && !confirm(t.newLessonConfirm)) return;
-  loadLesson(newLesson());
+  loadLesson(newLesson(t.firstPage));
 });
 
 // Cerrar menús al hacer clic afuera o con Escape.
@@ -680,6 +685,10 @@ document.addEventListener('drop', async (e) => {
 const draft = await loadDraft();
 if (draft) loadLesson(draft.lesson, draft.current);
 else renderPanel();
+
+document.documentElement.lang = lang;
+$('lang-es').addEventListener('click', () => setLang('es'));
+$('lang-en').addEventListener('click', () => setLang('en'));
 
 // En desarrollo, recargar la página entera al cambiar el código (la app arma su HTML al cargar).
 import.meta.hot?.accept(() => location.reload());

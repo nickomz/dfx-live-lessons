@@ -39,8 +39,8 @@ export function newPage(pages: EditorPage[], title = 'Nueva página'): EditorPag
   return { title, target: `Pagina${n}`, doc: emptyDoc() };
 }
 
-export function newLesson(): EditorLesson {
-  return { pages: [newPage([], 'Bienvenida')], preamble: [], assets: new Map(), languagesDiffer: false, setName: '' };
+export function newLesson(firstPage = 'Bienvenida'): EditorLesson {
+  return { pages: [newPage([], firstPage)], preamble: [], assets: new Map(), languagesDiffer: false, setName: '' };
 }
 
 /** Pasa una lección leída de un archivo al editor. */

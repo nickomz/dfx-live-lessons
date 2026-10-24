@@ -234,3 +234,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .link-actions button { min-height: 44px; padding: 0 12px; }
 }
 .field-error { margin: 0; font-size: 13px; line-height: 1.4; color: #ffb4a8; }
+
+/* Selector de idioma en el footer */
+.foot { align-items: center; }
+.lang { display: flex; align-items: center; gap: 2px; }
+.lang button { border: 0; background: transparent; color: var(--faint); font-size: 12px; padding: 4px 6px; }
+.lang button[aria-pressed='true'] { color: #fff; font-weight: 600; }
+@media (hover: none) and (pointer: coarse) {
+  .lang button { min-width: 44px; min-height: 44px; font-size: 13px; }
+}
