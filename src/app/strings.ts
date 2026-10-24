@@ -41,5 +41,4 @@ export const t = {
   bullet: 'Viñeta',
   divider: 'Línea divisoria',
   buyCoffee: 'Comprame un cafecito', // en inglés: "Buy me a coffee", con el link links.donate.en
-  notAffiliated: 'No afiliado a Ableton',
 };

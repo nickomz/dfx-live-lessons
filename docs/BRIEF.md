@@ -93,8 +93,8 @@ Lo más funcional posible sin complejizar la app.
 - Logo: `assets/brand/dfx-logo.svg` (copiado de `dfx vector.svg` en Google Drive, carpeta `Media / DFX`). Es el único asset de marca que se usa; las carpetas `png` y `background` de Drive no.
 - El logo es blanco, sin color. La paleta de la app parte de ahí (fondo oscuro, logo y texto blancos); si hace falta un color de acento, proponémelo.
 - Licencia MIT para el código. El logo queda fuera de la licencia.
-- En el footer y en el README: "No está afiliado ni respaldado por Ableton".
-- Footer, en este orden: selector ES · EN, "nickomz.com" (https://nickomz.com), el link de donación, "GitHub" y "No afiliado a Ableton". El link de donación depende del idioma de la interfaz: en español "Comprame un cafecito" → https://cafecito.app/nickomz; en inglés "Buy me a coffee" → https://paypal.me/nickomz (Cafecito solo cobra en pesos argentinos). Los links externos están todos en `src/app/links.ts`: cambiarlos es editar una línea.
+- En el README: "No está afiliado ni respaldado por Ableton". No va en el footer de la app.
+- Footer, en este orden: selector ES · EN, "nickomz.com" (https://nickomz.com), el link de donación, y "GitHub". El link de donación depende del idioma de la interfaz: en español "Comprame un cafecito" → https://cafecito.app/nickomz; en inglés "Buy me a coffee" → https://paypal.me/nickomz (Cafecito solo cobra en pesos argentinos). Los links externos están todos en `src/app/links.ts`: cambiarlos es editar una línea.
 - La marca DFX vive en la interfaz de la app, nunca dentro de la lección exportada: la lección es del docente.
 
 ## Criterios de terminado (v1)
