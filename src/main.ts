@@ -11,6 +11,7 @@ import { t } from './app/strings';
 import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } from './editor/document';
 import { Divider, LessonImage, LessonLink, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
+import { cleanPastedHTML } from './editor/paste';
 import { imageName, processImage } from './app/images';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
@@ -132,6 +133,8 @@ const editor = new Editor({
   content: lesson.pages[0]!.doc,
   editorProps: {
     attributes: { class: 'lv-editor', spellcheck: 'true' },
+    // Lo pegado desde Docs, Notion o la web se lleva a lo que Live muestra.
+    transformPastedHTML: (html) => cleanPastedHTML(html),
     // Pegar una captura (Cmd+V) o soltar imágenes en el panel las agrega a la lección.
     handlePaste: (_view, event) => {
       const images = imageFiles(event.clipboardData?.files);

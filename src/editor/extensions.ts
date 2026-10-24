@@ -3,7 +3,7 @@
 
 import { InputRule, Mark, Node, mergeAttributes } from '@tiptap/core';
 import Paragraph from '@tiptap/extension-paragraph';
-import type { Block } from '../lesson';
+import { buildTarget, type Block } from '../lesson';
 
 /** Párrafo de Live. `bullet` lo convierte en viñeta ("-> " en el archivo). */
 export const LessonParagraph = Paragraph.extend({
@@ -148,9 +148,32 @@ export const LessonLink = Mark.create({
     };
   },
   parseHTML() {
-    return [{ tag: 'span[data-target]' }];
+    return [
+      { tag: 'span[data-target]' },
+      // Links pegados (Docs, Notion, páginas web): solo web y email; el resto queda como texto.
+      {
+        tag: 'a[href]',
+        getAttrs: (el) => {
+          const href = (el as HTMLElement).getAttribute('href') ?? '';
+          if (/^mailto:/i.test(href)) return { target: buildTarget('email', href) };
+          if (/^https?:\/\//i.test(href)) return { target: buildTarget('web', unwrapRedirect(href)) };
+          return false;
+        },
+      },
+    ];
   },
   renderHTML({ HTMLAttributes }) {
     return ['span', mergeAttributes({ class: 'lv-link' }, HTMLAttributes), 0];
   },
 });
+
+/** Google Docs a veces pega los links como https://www.google.com/url?q=<destino>&…: se usa el destino. */
+function unwrapRedirect(href: string): string {
+  try {
+    const url = new URL(href);
+    if (/(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname === '/url' && url.searchParams.get('q')) return url.searchParams.get('q')!;
+  } catch {
+    // No es una URL válida: se usa tal cual.
+  }
+  return href;
+}
