@@ -4,6 +4,7 @@
 
 import type { JSONContent } from '@tiptap/core';
 import { lessonFiles, serializeText, type Lesson } from '../lesson';
+import { usedAssets } from '../app/images';
 import { blocksToContent, contentToBlocks } from './convert';
 
 export interface EditorPage {
@@ -86,7 +87,8 @@ export function toLesson(edit: EditorLesson): Lesson {
 
 /** Archivos de la carpeta "<Set> Lessons", por ruta dentro de la carpeta. */
 export function exportFiles(edit: EditorLesson): Map<string, Uint8Array> {
-  return lessonFiles(toLesson(edit), edit.assets);
+  const lesson = toLesson(edit);
+  return lessonFiles(lesson, usedAssets(edit.assets, serializeText(lesson)));
 }
 
 /** Limpia el nombre del set: sin ".als" ni caracteres que no van en un nombre de archivo. */

@@ -1,11 +1,11 @@
 // Conversión entre los bloques del motor (src/lesson) y el documento del editor (TipTap).
 //
-// Una línea del archivo es un nodo del documento: párrafo (texto o viñeta), divisor o
-// "preserved" para lo que el editor no edita (comentarios, imágenes por ahora, bloques
-// no soportados). Los nodos guardan `raw` para que lo que no se tocó se escriba igual.
+// Una línea del archivo es un nodo del documento: párrafo (texto o viñeta), divisor, imagen
+// o "preserved" para lo que el editor no edita (comentarios, $TargetName, bloques no
+// soportados). Los nodos guardan `raw` para que lo que no se tocó se escriba igual.
 
 import type { JSONContent } from '@tiptap/core';
-import { parseInlines, serializeInlines, type Block, type Inline, type TextRun } from '../lesson';
+import { parseInlines, serializeBlock, serializeInlines, type Block, type Inline, type TextRun } from '../lesson';
 
 function runToNode(run: TextRun): JSONContent {
   const marks = [];
@@ -56,6 +56,8 @@ export function blocksToContent(blocks: Block[]): JSONContent[] {
         return { type: 'paragraph', attrs: { bullet: false, raw: block.raw ?? null } };
       case 'divider':
         return { type: 'divider', attrs: { raw: block.raw ?? null } };
+      case 'image':
+        return { type: 'image', attrs: { file: block.file, alt: block.alt ?? null, raw: block.raw ?? null } };
       default:
         return { type: 'preserved', attrs: { block: JSON.stringify(block) } };
     }
@@ -73,6 +75,14 @@ export function contentToBlocks(content: JSONContent[] = []): Block[] {
       return typeof raw === 'string' ? { type: 'divider', raw } : { type: 'divider' };
     }
     if (node.type === 'preserved') return JSON.parse(String(node.attrs?.block)) as Block;
+    if (node.type === 'image') {
+      const file = String(node.attrs?.file ?? '');
+      const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : undefined;
+      const raw = typeof node.attrs?.raw === 'string' ? node.attrs.raw : undefined;
+      const block: Block = alt === undefined ? { type: 'image', file } : { type: 'image', file, alt };
+      // La línea original sigue valiendo mientras la imagen sea la misma.
+      return raw !== undefined && serializeBlock(block) === raw.trim() ? { ...block, raw } : block;
+    }
 
     const raw = typeof node.attrs?.raw === 'string' ? node.attrs.raw : undefined;
     const bullet = !!node.attrs?.bullet;

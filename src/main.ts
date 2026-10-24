@@ -9,7 +9,8 @@ import logoUrl from '../assets/brand/dfx-logo.svg';
 import { links } from './app/links';
 import { t } from './app/strings';
 import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } from './editor/document';
-import { Divider, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
+import { Divider, LessonImage, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
+import { imageName, processImage } from './app/images';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
 import { dirFromEntry, dirFromFileList, dirFromHandle, dirFromMap, readZip, scanLessons, type Dir, type FileRef, type ScanResult } from './app/open';
@@ -27,6 +28,7 @@ const icon = {
   divider: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h18"/></svg>',
   handle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
   upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>',
+  image: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-8 8"/></svg>',
   trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
 };
 
@@ -78,7 +80,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button class="inserter" id="inserter" aria-label="${t.insert}" aria-haspopup="menu" aria-expanded="false" hidden>${icon.plus}</button>
       <div class="popover insert-menu" id="insert-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="ins-bullet">${icon.bullet}${t.bullet}</button>
+        <button class="menu-item" role="menuitem" id="ins-image">${icon.image}${t.image}</button>
         <button class="menu-item" role="menuitem" id="ins-divider">${icon.divider}${t.divider}</button>
+        <input type="file" id="pick-image" accept="image/*" multiple hidden>
       </div>
       <div class="popover lesson.pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
     </div>
@@ -107,12 +111,30 @@ const editor = new Editor({
     Italic,
     Divider,
     Preserved,
+    LessonImage.configure({ resolve: (file) => imageUrl(file) }),
     PreservedInline,
     UndoRedo,
     Placeholder.configure({ placeholder: t.placeholder }),
   ],
   content: lesson.pages[0]!.doc,
-  editorProps: { attributes: { class: 'lv-editor', spellcheck: 'true' } },
+  editorProps: {
+    attributes: { class: 'lv-editor', spellcheck: 'true' },
+    // Pegar una captura (Cmd+V) o soltar imágenes en el panel las agrega a la lección.
+    handlePaste: (_view, event) => {
+      const images = imageFiles(event.clipboardData?.files);
+      if (!images.length) return false;
+      void addImages(images);
+      return true;
+    },
+    handleDrop: (view, event) => {
+      const images = imageFiles(event.dataTransfer?.files);
+      if (!images.length) return false;
+      event.preventDefault();
+      const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+      void addImages(images, pos);
+      return true;
+    },
+  },
   onUpdate: () => {
     lesson.pages[current]!.doc = editor.getJSON();
     changed();
@@ -320,6 +342,17 @@ $('ins-bullet').addEventListener('click', () => {
   closeInsert();
   updateFloating();
 });
+const pickImage = $<HTMLInputElement>('pick-image');
+$('ins-image').addEventListener('click', () => {
+  closeInsert();
+  pickImage.click();
+});
+pickImage.addEventListener('change', () => {
+  const images = imageFiles(pickImage.files ?? undefined);
+  pickImage.value = '';
+  if (images.length) void addImages(images);
+});
+
 $('ins-divider').addEventListener('click', () => {
   editor.chain().focus().insertContent([{ type: 'divider' }, { type: 'paragraph' }]).run();
   closeInsert();
@@ -362,6 +395,52 @@ document.addEventListener('keydown', (e) => {
 
 const { updateExportInfo } = setupExport({ getLesson: () => lesson, onChange: () => changed(), info: $('export-info'), button: $('export-btn') });
 
+// --- Imágenes ---------------------------------------------------------------------
+
+const imageUrls = new Map<string, string>();
+
+/** URL para mostrar una imagen de la lección; usa la copia de Large/ si está (más nítida). */
+function imageUrl(file: string): string | null {
+  const cached = imageUrls.get(file);
+  if (cached) return cached;
+  const bytes = lesson.assets.get(`Large/${file}`) ?? lesson.assets.get(file);
+  if (!bytes) return null;
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart]));
+  imageUrls.set(file, url);
+  return url;
+}
+
+function clearImageUrls() {
+  for (const url of imageUrls.values()) URL.revokeObjectURL(url);
+  imageUrls.clear();
+}
+
+const imageFiles = (list?: FileList) => [...(list ?? [])].filter((f) => f.type.startsWith('image/'));
+
+/** Convierte las imágenes para Live, las guarda en la lección y las inserta en el texto. */
+async function addImages(files: File[], pos?: number) {
+  const nodes = [];
+  for (const file of files) {
+    let processed;
+    try {
+      processed = await processImage(file);
+    } catch {
+      alert(t.imageError);
+      continue;
+    }
+    const used = new Set([...lesson.assets.keys()].filter((k) => !k.startsWith('Large/')));
+    const name = imageName(file.name, used);
+    lesson.assets.set(name, processed.small);
+    if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
+    nodes.push({ type: 'image', attrs: { file: name } });
+  }
+  if (!nodes.length) return;
+  const chain = editor.chain().focus();
+  if (pos !== undefined) chain.insertContentAt(pos, [...nodes, { type: 'paragraph' }]).run();
+  else chain.insertContent([...nodes, { type: 'paragraph' }]).run();
+  changed();
+}
+
 // --- Abrir una lección y borrador ------------------------------------------------
 
 function changed() {
@@ -369,6 +448,7 @@ function changed() {
 }
 
 function loadLesson(next: EditorLesson, page = 0) {
+  clearImageUrls();
   lesson = next;
   current = Math.min(page, lesson.pages.length - 1);
   editor.commands.setContent(lesson.pages[current]!.doc, { emitUpdate: false });
@@ -484,7 +564,8 @@ document.addEventListener('dragover', (e) => {
   if (hasFiles(e) && !(e.target as HTMLElement).closest('dialog')) e.preventDefault();
 });
 document.addEventListener('drop', async (e) => {
-  if (!hasFiles(e) || (e.target as HTMLElement).closest('dialog')) return;
+  // Las imágenes soltadas sobre el editor ya las agregó el editor.
+  if (e.defaultPrevented || !hasFiles(e) || (e.target as HTMLElement).closest('dialog')) return;
   e.preventDefault();
   const entries = [...e.dataTransfer!.items].map((i) => i.webkitGetAsEntry?.()).filter((x): x is FileSystemEntry => !!x);
   const files = [...e.dataTransfer!.files];

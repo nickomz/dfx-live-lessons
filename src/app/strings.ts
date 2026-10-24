@@ -52,5 +52,7 @@ export const t = {
   insert: 'Insertar en esta línea',
   bullet: 'Viñeta',
   divider: 'Línea divisoria',
+  image: 'Imagen',
+  imageError: 'No pudimos abrir esa imagen. Probá con un PNG o JPG.',
   buyCoffee: 'Comprame un cafecito', // en inglés: "Buy me a coffee", con el link links.donate.en
 };

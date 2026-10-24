@@ -101,3 +101,34 @@ export const PreservedInline = Node.create({
     return ['span', { class: 'lv-preserved-inline', contenteditable: 'false' }, String(node.attrs.source)];
   },
 });
+
+export interface LessonImageOptions {
+  /** Devuelve la URL para mostrar un archivo de la lección, o null si no está. */
+  resolve: (file: string) => string | null;
+}
+
+/** Imagen de Live: una línea con el nombre del archivo PNG, de 260 px de ancho. */
+export const LessonImage = Node.create<LessonImageOptions>({
+  name: 'image',
+  group: 'block',
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addOptions() {
+    return { resolve: () => null };
+  },
+  addAttributes() {
+    return {
+      file: { default: '', rendered: false },
+      alt: { default: null, rendered: false },
+      raw: { default: null, rendered: false },
+    };
+  },
+  renderHTML({ node }) {
+    const file = String(node.attrs.file);
+    const src = this.options.resolve(file);
+    return src
+      ? ['figure', { class: 'lv-image', contenteditable: 'false' }, ['img', { src, alt: String(node.attrs.alt ?? file), draggable: 'false' }]]
+      : ['figure', { class: 'lv-image missing', contenteditable: 'false' }, `Falta la imagen ${file}`];
+  },
+});

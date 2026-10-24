@@ -200,3 +200,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .touch-only { display: block; }
   .desktop-only { display: none; }
 }
+
+/* Imágenes: 260 px de ancho, como en Live */
+.lv-editor .lv-image { margin: 0; width: 260px; max-width: 100%; }
+.lv-editor .lv-image img { display: block; width: 100%; height: auto; }
+.lv-editor .lv-image.ProseMirror-selectednode { outline: 2px solid #fff; outline-offset: 2px; }
+.lv-editor .lv-image.missing { padding: 10px; background: #5a5a5a; color: #e0e0e0; font: 11px Inter, sans-serif; border-radius: 4px; }
