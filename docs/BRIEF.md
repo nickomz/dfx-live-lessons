@@ -83,6 +83,6 @@ Lo más funcional posible sin complejizar la app.
 
 1. Una lección de 3+ páginas, con texto con formato, imagen pegada y links, creada en la app, exportada y descomprimida, se ve en Live 12.4.7 igual que en el editor. Verificalo vos con el control de la compu y mostrame capturas lado a lado.
 2. Esa lección, arrastrada de vuelta a la app, se abre idéntica.
-3. Pegar desde un Google Doc con títulos, negritas y listas conserva lo que Live soporta.
+3. Pegar desde un Google Doc con títulos, negritas y listas conserva lo que Live soporta. Como el formato de Live no tiene títulos, cada título pegado se convierte en una línea en negrita (igual que hace Ableton en sus lecciones).
 4. Funciona en Chrome, Safari y Firefox.
 5. Un docente sin explicación previa puede crear y colocar su primera lección.
