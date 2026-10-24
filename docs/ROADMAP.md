@@ -55,7 +55,9 @@ El código que lee y escribe los archivos `Lessons*.txt`. No se ve, pero todo lo
 - Prueba de ida y vuelta: abrir una lección y guardarla deja el archivo idéntico, carácter por carácter.
 - Los elementos que el editor no ofrece (links `Pref:`, `Browse…`, `$If`, etc.) se conservan intactos.
 
-**Termina cuando:** las lecciones existentes de Nicko se abren y se guardan sin cambiar nada.
+**Termina cuando:** el round-trip es idéntico, carácter por carácter, con:
+- las lecciones que traen Live y los Packs instalados, solo como tests locales: no se suben al repo porque son propietarias;
+- la lección del synth Lode ([github.com/fors-fm/lode](https://github.com/fors-fm/lode), `Lode Lessons/LessonsEN.txt`, licencia MIT), que va al repo como fixture público con su aviso de licencia.
 
 ## 3. Primera versión mínima
 
