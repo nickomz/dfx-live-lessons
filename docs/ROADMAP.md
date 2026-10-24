@@ -80,7 +80,7 @@ Para pulir en la etapa 4:
 - Live muestra el texto con más peso que Jost: comparar con una variante más gruesa.
 - Las viñetas de Live son un cuadradito (▪), no un punto.
 - En Live el divisor va pegado al texto de arriba y de abajo.
-- Probar la descarga del zip en Chrome y Safari reales: el navegador integrado de Claude no guarda descargas.
+- Probar la descarga del zip en Safari y Firefox (en Chrome ya la confirmó Nicko el 24/10/2026).
 
 ## 4. Versión completa (v1)
 
