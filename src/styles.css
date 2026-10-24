@@ -194,3 +194,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .menu-item.lang { justify-content: flex-start; gap: 12px; }
 .menu-item.lang b { width: 28px; font-weight: 600; }
 .menu-item.lang span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* En pantallas táctiles no se pueden arrastrar carpetas: cambia la ayuda del menú. */
+.touch-only { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .touch-only { display: block; }
+  .desktop-only { display: none; }
+}

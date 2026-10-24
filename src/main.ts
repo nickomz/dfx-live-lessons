@@ -39,11 +39,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button class="icon-btn" id="lessons-btn" aria-label="${t.lessons}" aria-haspopup="menu" aria-expanded="false">${icon.folder}</button>
       <div class="popover right" id="lessons-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="new-lesson">${icon.plus}${t.newLesson}</button>
-        <button class="menu-item" role="menuitem" id="open-zip">${icon.upload}${t.openZip}</button>
-        <button class="menu-item" role="menuitem" id="open-folder">${icon.folder}${t.openFolder}</button>
-        <span class="menu-hint">${t.dropHint}</span>
-        <input type="file" id="pick-zip" accept=".zip,application/zip" hidden>
-        <input type="file" id="pick-folder" webkitdirectory hidden>
+        <button class="menu-item" role="menuitem" id="open-lesson">${icon.upload}${t.openLesson}</button>
+        <span class="menu-hint desktop-only">${t.dropHint}</span>
+        <span class="menu-hint touch-only">${t.dropHintTouch}</span>
+        <input type="file" id="pick-files" multiple hidden>
       </div>
     </div>
     <div class="anchor">
@@ -423,21 +422,16 @@ async function openFiles(all: Map<string, Uint8Array>) {
   loadLesson(fromLesson(read.lessons.get(key)!, { assets: read.assets, languagesDiffer: read.languagesDiffer, setName: folder.setName }));
 }
 
-$('open-zip').addEventListener('click', () => {
+// El botón elige un .zip (o los archivos de la carpeta); las carpetas se abren arrastrándolas.
+const pickFiles = $<HTMLInputElement>('pick-files');
+$('open-lesson').addEventListener('click', () => {
   closeLessonsMenu();
-  $<HTMLInputElement>('pick-zip').click();
+  pickFiles.click();
 });
-$('open-folder').addEventListener('click', () => {
-  closeLessonsMenu();
-  $<HTMLInputElement>('pick-folder').click();
+pickFiles.addEventListener('change', async () => {
+  if (pickFiles.files?.length) await openFiles(await readPickedFiles(pickFiles.files));
+  pickFiles.value = '';
 });
-for (const id of ['pick-zip', 'pick-folder']) {
-  const input = $<HTMLInputElement>(id);
-  input.addEventListener('change', async () => {
-    if (input.files?.length) await openFiles(await readPickedFiles(input.files));
-    input.value = '';
-  });
-}
 
 // Soltar una carpeta o un .zip en cualquier parte de la ventana (fuera de los diálogos).
 const hasFiles = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
