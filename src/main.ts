@@ -38,7 +38,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </div>
     </div>
     <div class="anchor">
-      <button class="primary" id="export-btn" aria-describedby="export-info">${icon.download}<span class="export-label">${t.export}</span></button>
+      <button class="primary" id="export-btn" aria-label="${t.export}" aria-describedby="export-info">${icon.download}<span class="export-label">${t.export}</span></button>
       <div class="popover tooltip" id="export-info" role="tooltip" hidden></div>
     </div>
   </header>
@@ -110,6 +110,13 @@ const editor = new Editor({
   onSelectionUpdate: () => updateFloating(),
   onBlur: () => setTimeout(updateFloating, 0),
   onFocus: () => updateFloating(),
+});
+
+// Un clic en el espacio vacío del panel lleva el cursor al final del texto.
+document.querySelector('.lv-body')!.addEventListener('mousedown', (e) => {
+  if ((e.target as HTMLElement).closest('.lv-editor')) return;
+  e.preventDefault();
+  editor.commands.focus('end');
 });
 
 // --- Páginas -----------------------------------------------------------------

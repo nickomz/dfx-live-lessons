@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { blocksToContent, contentToBlocks } from '../src/editor/convert';
-import { exportFiles, newPage } from '../src/editor/document';
+import JSZip from 'jszip';
+import { cleanSetName, exportFiles, exportZip, newPage } from '../src/editor/document';
 import { parseLesson, serializeLesson } from '../src/lesson';
 
 const root = join(import.meta.dirname, '..');
@@ -71,5 +72,22 @@ describe('exportar', () => {
         '',
       ].join('\n'),
     );
+  });
+});
+
+describe('zip', () => {
+  it('limpia el nombre del set', () => {
+    expect(cleanSetName('  Clase 03 - House.als ')).toBe('Clase 03 - House');
+    expect(cleanSetName('a/b:c')).toBe('abc');
+  });
+
+  it('arma "<Set> Lessons.zip" con la carpeta y los 7 idiomas adentro', async () => {
+    const bytes = await exportZip([newPage([], 'Uno')], 'Clase 03');
+    const zip = await JSZip.loadAsync(bytes);
+    const files = Object.keys(zip.files).filter((p) => !zip.files[p]!.dir).sort();
+    expect(files).toEqual(
+      ['DE', 'EN', 'ES', 'FR', 'IT', 'JA', 'ZH'].map((l) => `Clase 03 Lessons/Lessons${l}.txt`),
+    );
+    expect(await zip.file('Clase 03 Lessons/LessonsES.txt')!.async('string')).toBe('$Page Uno\n$TargetName Pagina1\n\n');
   });
 });

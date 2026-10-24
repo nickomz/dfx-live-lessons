@@ -1,6 +1,7 @@
-// Botón Exportar: el resumen de qué se exporta aparece solo al pasar el mouse o con foco.
+// Exportar: el resumen al pasar el mouse, el nombre del set la primera vez, la descarga
+// del zip y las instrucciones para llevar la lección a Live.
 
-import type { EditorPage } from '../editor/document';
+import { cleanSetName, exportZip, type EditorPage } from '../editor/document';
 import { t } from './strings';
 
 interface ExportOptions {
@@ -9,7 +10,9 @@ interface ExportOptions {
   button: HTMLElement;
 }
 
-export function setupExport({ info, button }: ExportOptions) {
+const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
+export function setupExport({ getPages, info, button }: ExportOptions) {
   let setName = '';
 
   function updateExportInfo() {
@@ -30,12 +33,125 @@ export function setupExport({ info, button }: ExportOptions) {
   button.addEventListener('focus', show);
   button.addEventListener('blur', hide);
 
+  // --- Nombre del set ---------------------------------------------------------
+
+  const nameDialog = document.createElement('dialog');
+  nameDialog.className = 'dlg';
+  nameDialog.setAttribute('aria-labelledby', 'set-title');
+  nameDialog.innerHTML = `
+    <form method="dialog" class="dlg-body">
+      <div class="dlg-head">
+        <h2 id="set-title">${t.setTitle}</h2>
+        <p>${t.setHelp}</p>
+      </div>
+      <label class="field-label" for="set-name">${t.setLabel}</label>
+      <div class="field"><input id="set-name" autocomplete="off" spellcheck="false" placeholder="${t.setExample}"><span>.als</span></div>
+      <label class="drop" id="set-drop">
+        <input type="file" accept=".als" hidden id="set-file">
+        <span>${t.setDrop}</span>
+      </label>
+      <div class="folder-preview"><span>${t.folderWillBe}</span><code id="set-folder"></code></div>
+      <div class="dlg-actions">
+        <button type="button" class="ghost" id="set-cancel">${t.cancel}</button>
+        <button type="submit" class="primary wide" id="set-ok">${t.download}</button>
+      </div>
+    </form>`;
+  document.body.append(nameDialog);
+
+  const nameInput = nameDialog.querySelector<HTMLInputElement>('#set-name')!;
+  const folderPreview = nameDialog.querySelector<HTMLElement>('#set-folder')!;
+  const okButton = nameDialog.querySelector<HTMLButtonElement>('#set-ok')!;
+
+  function refreshName() {
+    const name = cleanSetName(nameInput.value);
+    folderPreview.textContent = `${name || t.setNamePlaceholder} Lessons/`;
+    okButton.disabled = !name;
+  }
+  nameInput.addEventListener('input', refreshName);
+
+  function takeAls(file: File | undefined) {
+    if (!file || !/\.als$/i.test(file.name)) return;
+    // Solo se usa el nombre del archivo; el contenido no se lee ni se sube.
+    nameInput.value = file.name.replace(/\.als$/i, '');
+    refreshName();
+  }
+  const drop = nameDialog.querySelector<HTMLElement>('#set-drop')!;
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drop.classList.add('over');
+  });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('over');
+    takeAls(e.dataTransfer?.files[0]);
+  });
+  nameDialog.querySelector<HTMLInputElement>('#set-file')!.addEventListener('change', (e) => {
+    takeAls((e.target as HTMLInputElement).files?.[0]);
+  });
+  nameDialog.querySelector('#set-cancel')!.addEventListener('click', () => nameDialog.close());
+  nameDialog.querySelector('form')!.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = cleanSetName(nameInput.value);
+    if (!name) return;
+    setName = name;
+    updateExportInfo();
+    nameDialog.close();
+    void download();
+  });
+
+  // --- Después de descargar -----------------------------------------------------
+
+  const doneDialog = document.createElement('dialog');
+  doneDialog.className = 'dlg';
+  doneDialog.setAttribute('aria-labelledby', 'done-title');
+  document.body.append(doneDialog);
+
+  function showDone() {
+    const folder = escape(`${setName} Lessons`);
+    doneDialog.innerHTML = `
+      <div class="dlg-body">
+        <div class="dlg-head">
+          <span class="muted">${t.downloaded}: ${folder}.zip</span>
+          <h2 id="done-title">${t.doneTitle}</h2>
+        </div>
+        <ol class="steps">
+          <li><span class="n">1</span><span>${t.step1(folder)}</span></li>
+          <li><span class="n">2</span><span>${t.step2}</span></li>
+          <li><span class="n">3</span><span>${t.step3}</span></li>
+        </ol>
+        <pre class="tree">${escape(setName)} Project/
+├── ${escape(setName)}.als
+└── <b>${folder}/</b></pre>
+        <p class="muted small">${t.doneNotes}</p>
+        <button class="primary wide" id="done-ok">${t.understood}</button>
+      </div>`;
+    doneDialog.querySelector('#done-ok')!.addEventListener('click', () => doneDialog.close());
+    doneDialog.showModal();
+  }
+
+  async function download() {
+    const bytes = await exportZip(getPages(), setName);
+    const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/zip' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${setName} Lessons.zip`;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    showDone();
+  }
+
+  button.addEventListener('click', () => {
+    hide();
+    if (setName) return void download();
+    nameInput.value = '';
+    refreshName();
+    nameDialog.showModal();
+    nameInput.focus();
+  });
+
   updateExportInfo();
-  return {
-    updateExportInfo,
-    setSetName(name: string) {
-      setName = name;
-      updateExportInfo();
-    },
-  };
+  return { updateExportInfo };
 }
