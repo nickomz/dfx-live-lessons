@@ -219,3 +219,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .dlg [data-for] { display: flex; flex-direction: column; gap: 8px; }
 .dlg [data-for] .field-label { margin-bottom: 0; }
 .bubble #fmt-link { display: grid; place-items: center; }
+
+/* Tarjeta de un link: destino + Abrir · Editar · Quitar */
+.link-card {
+  position: absolute; z-index: 16; max-width: 280px; display: flex; flex-direction: column; gap: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); font-size: 13px;
+}
+.link-dest { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link-actions { display: flex; gap: 4px; }
+.link-actions button { min-height: 32px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: #fff; font-size: 13px; }
+.link-actions button:hover { background: var(--surface-2); }
+@media (hover: none) and (pointer: coarse) {
+  .link-actions button { min-height: 44px; padding: 0 12px; }
+}

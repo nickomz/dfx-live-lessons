@@ -15,7 +15,7 @@ import { imageName, processImage } from './app/images';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
 import { dirFromEntry, dirFromFileList, dirFromHandle, dirFromMap, readZip, scanLessons, type Dir, type FileRef, type ScanResult } from './app/open';
-import { readLessonFolder } from './lesson';
+import { linkKind, readLessonFolder } from './lesson';
 
 const icon = {
   folder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>',
@@ -80,6 +80,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <button class="i" id="fmt-italic" aria-label="${t.italic}" aria-pressed="false">I</button>
         <button id="fmt-link" aria-label="${t.link}" aria-pressed="false">${icon.link}</button>
       </div>
+      <div class="link-card" id="link-card" role="dialog" aria-label="${t.link}" hidden>
+        <span class="link-dest" id="link-dest"></span>
+        <div class="link-actions">
+          <button id="link-open"></button>
+          <button id="link-edit">${t.linkEdit}</button>
+          <button id="link-unlink">${t.linkRemove}</button>
+        </div>
+      </div>
       <button class="inserter" id="inserter" aria-label="${t.insert}" aria-haspopup="menu" aria-expanded="false" hidden>${icon.plus}</button>
       <div class="popover insert-menu" id="insert-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="ins-bullet">${icon.bullet}${t.bullet}</button>
@@ -129,6 +137,14 @@ const editor = new Editor({
       const images = imageFiles(event.clipboardData?.files);
       if (!images.length) return false;
       void addImages(images);
+      return true;
+    },
+    // Cmd+clic (Mac) o Ctrl+clic (Windows) sobre un link lo abre directo.
+    handleClick: (view, pos, event) => {
+      if (!event.metaKey && !event.ctrlKey) return false;
+      const mark = view.state.doc.resolve(pos).marks().find((m) => m.type.name === 'link');
+      if (!mark) return false;
+      openLink(String(mark.attrs.target));
       return true;
     },
     handleDrop: (view, event) => {
@@ -302,8 +318,17 @@ function updateFloating() {
   const { selection } = editor.state;
   const focused = editor.isFocused || bubble.contains(document.activeElement) || inserter.contains(document.activeElement);
 
-  // La barrita aparece con texto seleccionado o con el cursor dentro de un link (para editarlo).
-  if (focused && (!selection.empty || editor.isActive('link')) && selection.$from.parent.type.name === 'paragraph') {
+  // Con el cursor dentro de un link (sin seleccionar) aparece la tarjeta del link.
+  const linkCard = $('link-card');
+  const cardFocused = linkCard.contains(document.activeElement);
+  if ((editor.isFocused || cardFocused) && selection.empty && editor.isActive('link')) {
+    showLinkCard(wrap);
+  } else if (!cardFocused) {
+    linkCard.hidden = true;
+  }
+
+  // La barrita aparece con texto seleccionado.
+  if (focused && !selection.empty && selection.$from.parent.type.name === 'paragraph') {
     const start = editor.view.coordsAtPos(selection.from);
     const end = editor.view.coordsAtPos(selection.to);
     bubble.hidden = false;
@@ -332,7 +357,57 @@ function updateFloating() {
 }
 
 // mousedown + preventDefault: el editor no pierde la selección al tocar la barrita.
-for (const el of [bubble, inserter, insertMenu]) el.addEventListener('mousedown', (e) => e.preventDefault());
+for (const el of [bubble, inserter, insertMenu, $('link-card')]) el.addEventListener('mousedown', (e) => e.preventDefault());
+
+/** Lo que hace "Abrir" según el tipo de link. */
+function linkInfo(target: string): { label: string; open?: string; dest: string } {
+  const kind = linkKind(target);
+  if (kind === 'page') {
+    const page = lesson.pages.find((p) => p.target === target.slice('GotoPage:'.length));
+    return { dest: `${t.linkPage}: ${page?.title || t.untitled}`, label: t.linkGoToPage, open: target };
+  }
+  if (kind === 'web') return { dest: target.replace(/^https?:\/\//, '').replace(/\/$/, ''), label: t.linkOpen, open: target };
+  if (kind === 'email') return { dest: target.replace(/^mailto:/, ''), label: t.linkOpen, open: target };
+  if (kind === 'set') return { dest: `${t.linkSet}: ${target.replace(/^Set:/, '')}` , label: '' };
+  return { dest: target, label: '' };
+}
+
+function openLink(target: string) {
+  const kind = linkKind(target);
+  if (kind === 'page') {
+    const i = lesson.pages.findIndex((p) => p.target === target.slice('GotoPage:'.length));
+    if (i >= 0) goTo(i);
+  } else if (kind === 'web' || kind === 'email') {
+    window.open(target, '_blank', 'noopener');
+  }
+  // Un link a otro Set solo funciona dentro de Live.
+}
+
+function showLinkCard(wrap: DOMRect) {
+  const card = $('link-card');
+  const target = String(editor.getAttributes('link').target ?? '');
+  const info = linkInfo(target);
+  $('link-dest').textContent = info.dest;
+  $('link-dest').title = target;
+  const open = $<HTMLButtonElement>('link-open');
+  open.hidden = !info.open;
+  open.textContent = info.label;
+  card.hidden = false;
+  const pos = editor.view.coordsAtPos(editor.state.selection.from);
+  const left = Math.min(Math.max(pos.left - wrap.left - 20, 0), wrap.width - card.offsetWidth);
+  card.style.left = `${Math.max(left, 0)}px`;
+  card.style.top = `${pos.bottom - wrap.top + 6}px`;
+}
+
+$('link-open').addEventListener('click', () => openLink(String(editor.getAttributes('link').target ?? '')));
+$('link-edit').addEventListener('click', () => {
+  $('link-card').hidden = true;
+  openLinkDialog();
+});
+$('link-unlink').addEventListener('click', () => {
+  editor.chain().focus().extendMarkRange('link').unsetMark('link').run();
+  $('link-card').hidden = true;
+});
 $('fmt-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
 $('fmt-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
 const { openLinkDialog } = setupLinks({ editor, getPages: () => lesson.pages, current: () => current });
