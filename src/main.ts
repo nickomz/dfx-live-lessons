@@ -97,7 +97,15 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <button class="menu-item" role="menuitem" id="ins-link">${icon.link}${t.link}</button>
         <input type="file" id="pick-image" accept="image/*" multiple hidden>
       </div>
-      <div class="popover lesson.pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
+      <div class="popover pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
+    </div>
+    <div class="touch-bar" id="touch-bar" role="toolbar" aria-label="${t.format}" hidden>
+      <button id="tb-bold" class="b" aria-label="${t.bold}" aria-pressed="false">B</button>
+      <button id="tb-italic" class="i" aria-label="${t.italic}" aria-pressed="false">I</button>
+      <button id="tb-link" aria-label="${t.link}" aria-pressed="false">${icon.link}</button>
+      <button id="tb-bullet" aria-label="${t.bullet}" aria-pressed="false">${icon.bullet}</button>
+      <button id="tb-image" aria-label="${t.image}">${icon.image}</button>
+      <button id="tb-divider" aria-label="${t.divider}">${icon.divider}</button>
     </div>
   </main>
 
@@ -228,15 +236,12 @@ $('foot-next').addEventListener('click', () => goTo(current + 1));
 
 const hasContent = (p: EditorPage) => JSON.stringify(p.doc.content ?? []).includes('"text"') || JSON.stringify(p.doc.content ?? []).includes('divider');
 
-let dragFrom: number | null = null;
-
 function renderPages() {
   const pop = $('pages-pop');
   pop.innerHTML = '';
   lesson.pages.forEach((page, i) => {
     const row = document.createElement('div');
     row.className = `page-row${i === current ? ' current' : ''}`;
-    row.draggable = true;
     row.innerHTML = `<span class="handle">${icon.handle}</span><span class="num">${i + 1}</span>`;
     const go = document.createElement('button');
     go.className = 'go';
@@ -252,20 +257,8 @@ function renderPages() {
     del.disabled = lesson.pages.length === 1;
     del.addEventListener('click', () => deletePage(i));
     row.append(go, del);
-    row.addEventListener('dragstart', (e) => {
-      dragFrom = i;
-      e.dataTransfer?.setData('text/plain', String(i));
-    });
-    row.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      row.classList.add('drop-before');
-    });
-    row.addEventListener('dragleave', () => row.classList.remove('drop-before'));
-    row.addEventListener('drop', (e) => {
-      e.preventDefault();
-      if (dragFrom !== null) movePage(dragFrom, i);
-      dragFrom = null;
-    });
+    // Reordenar: se agarra la manija (con el mouse o con el dedo) y se suelta sobre otra fila.
+    row.querySelector('.handle')!.addEventListener('pointerdown', (e) => startRowDrag(e as PointerEvent, i));
     pop.append(row);
   });
   const add = document.createElement('button');
@@ -279,6 +272,29 @@ function renderPages() {
     titleInput.select();
   });
   pop.append(add);
+}
+
+function startRowDrag(e: PointerEvent, from: number) {
+  e.preventDefault();
+  const rows = [...$('pages-pop').querySelectorAll<HTMLElement>('.page-row')];
+  rows[from]!.classList.add('dragging');
+  let to = from;
+  const move = (ev: PointerEvent) => {
+    const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest<HTMLElement>('.page-row');
+    const i = over ? rows.indexOf(over) : -1;
+    if (i < 0) return;
+    to = i;
+    rows.forEach((r, j) => r.classList.toggle('drop-before', j === to && to !== from));
+  };
+  const end = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', end);
+    document.removeEventListener('pointercancel', end);
+    movePage(from, to);
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
 }
 
 function movePage(from: number, to: number) {
@@ -318,6 +334,7 @@ $('counter').addEventListener('click', () => {
 // --- Formato: barrita al seleccionar y "+" en una línea vacía -------------------
 
 const bubble = $('bubble');
+const isTouch = matchMedia('(hover: none) and (pointer: coarse)').matches;
 const inserter = $('inserter');
 const insertMenu = $('insert-menu');
 
@@ -333,6 +350,14 @@ function updateFloating() {
     showLinkCard(wrap);
   } else if (!cardFocused) {
     linkCard.hidden = true;
+  }
+
+  // En pantallas táctiles el formato va en la barra de arriba del teclado.
+  if (isTouch) {
+    bubble.hidden = true;
+    inserter.hidden = true;
+    updateTouchBar();
+    return;
   }
 
   // La barrita aparece con texto seleccionado.
@@ -366,6 +391,40 @@ function updateFloating() {
 
 // mousedown + preventDefault: el editor no pierde la selección al tocar la barrita.
 for (const el of [bubble, inserter, insertMenu, $('link-card')]) el.addEventListener('mousedown', (e) => e.preventDefault());
+
+// --- Celular: barra de formato pegada arriba del teclado ---------------------------
+
+const touchBar = $('touch-bar');
+// pointerdown + preventDefault: el editor no pierde el foco y el teclado no se cierra.
+touchBar.addEventListener('pointerdown', (e) => e.preventDefault());
+// Después de cada botón se actualiza qué está activo (B sin selección no mueve el cursor).
+touchBar.addEventListener('click', () => setTimeout(updateTouchBar, 0));
+
+function updateTouchBar() {
+  touchBar.hidden = !editor.isFocused;
+  if (touchBar.hidden) return;
+  // Con el teclado abierto, visualViewport es más bajo que la ventana: la barra va justo encima.
+  const vv = window.visualViewport;
+  const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+  touchBar.style.bottom = `${keyboard}px`;
+  $('tb-bold').setAttribute('aria-pressed', String(editor.isActive('bold')));
+  $('tb-italic').setAttribute('aria-pressed', String(editor.isActive('italic')));
+  $('tb-link').setAttribute('aria-pressed', String(editor.isActive('link')));
+  $('tb-bullet').setAttribute('aria-pressed', String(!!editor.state.selection.$from.parent.attrs.bullet));
+}
+if (isTouch) {
+  window.visualViewport?.addEventListener('resize', updateTouchBar);
+  window.visualViewport?.addEventListener('scroll', updateTouchBar);
+}
+$('tb-bold').addEventListener('click', () => editor.chain().focus().toggleBold().run());
+$('tb-italic').addEventListener('click', () => editor.chain().focus().toggleItalic().run());
+$('tb-link').addEventListener('click', () => openLinkDialog());
+$('tb-bullet').addEventListener('click', () => {
+  const bullet = !!editor.state.selection.$from.parent.attrs.bullet;
+  editor.chain().focus().updateAttributes('paragraph', { bullet: !bullet }).run();
+});
+$('tb-image').addEventListener('click', () => $<HTMLInputElement>('pick-image').click());
+$('tb-divider').addEventListener('click', () => editor.chain().focus().insertContent([{ type: 'divider' }, { type: 'paragraph' }]).run());
 
 /** Lo que hace "Abrir" según el tipo de link. */
 function linkInfo(target: string): { label: string; open?: string; dest: string } {
