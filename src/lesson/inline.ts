@@ -7,7 +7,8 @@
 import { linkKind } from './links';
 import type { Inline, LinkLabel, TextRun } from './model';
 
-const LINK = /\$Link (.+?) <([^<>]*)>/g;
+// El espacio antes de "<" es opcional: la lección de Lode tiene "$Link *Fors*<https://fors.fm>".
+const LINK = /\$Link (.+?)\s*<([^<>]*)>/g;
 export const IMAGE_FILE = /^(\S+\.(?:png|tiff?|jpe?g|gif))(?:\[alt="(.*)"\])?$/i;
 
 const OPEN_BEFORE = /[\s(\[«"“'¡¿]/;
