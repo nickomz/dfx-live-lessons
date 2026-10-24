@@ -9,7 +9,7 @@ Cada etapa termina en algo que Nicko puede ver y aprobar antes de pasar a la sig
 | 0. Estrategia | Terminada |
 | 1. Prueba en Live | Terminada |
 | 2. El motor | Terminada |
-| 3. Primera versión mínima | Pendiente |
+| 3. Primera versión mínima | Terminada |
 | 4. Versión completa (v1) | Pendiente |
 | 5. Prueba con docentes | Pendiente |
 | 6. Lanzamiento | Pendiente |
@@ -66,12 +66,21 @@ Resultado (24/10/2026): 46 pruebas pasan. Las 926 lecciones instaladas en la Mac
 
 Algo usable, aunque básico, para confirmar que vamos bien.
 
-- Editor con la réplica del panel de Live.
-- Páginas: agregar, quitar, reordenar, renombrar.
-- Negrita, cursiva y viñetas.
-- Exportar el `.zip` con los 7 idiomas.
+- [x] Editor con la réplica del panel de Live.
+- [x] Páginas: agregar, quitar, reordenar, renombrar.
+- [x] Negrita, cursiva, viñetas y línea divisoria.
+- [x] Exportar el `.zip` con los 7 idiomas, pidiendo el nombre del set, con las instrucciones después de descargar.
+- [x] Layout que ya se adapta al celular.
 
 **Termina cuando:** una lección hecha en la app se ve en Live igual que en el editor (capturas lado a lado).
+
+Resultado (24/10/2026): una lección de 3 páginas armada en la app y exportada se ve en Live 12.4.7 con el mismo contenido y formato en las tres páginas ([`docs/capturas/comparacion-app-vs-live12.png`](capturas/comparacion-app-vs-live12.png)). En Live 11.3 se verificó la página 1 (`live11-05-app-bienvenida.jpg`); las páginas 2 y 3 no se pudieron navegar porque, con su zoom de interfaz, Live 11 no entra en la pantalla de la notebook, pero usan elementos ya confirmados en Live 11 en la Fase 0.
+
+Para pulir en la etapa 4:
+- Live muestra el texto con más peso que Jost: comparar con una variante más gruesa.
+- Las viñetas de Live son un cuadradito (▪), no un punto.
+- En Live el divisor va pegado al texto de arriba y de abajo.
+- Probar la descarga del zip en Chrome y Safari reales: el navegador integrado de Claude no guarda descargas.
 
 ## 4. Versión completa (v1)
 
