@@ -6,8 +6,8 @@ Cada etapa termina en algo que Nicko puede ver y aprobar antes de pasar a la sig
 
 | Etapa | Estado |
 |---|---|
-| 0. Estrategia | En curso |
-| 1. Prueba en Live | Pendiente |
+| 0. Estrategia | Terminada |
+| 1. Prueba en Live | En curso |
 | 2. El motor | Pendiente |
 | 3. Primera versión mínima | Pendiente |
 | 4. Versión completa (v1) | Pendiente |
@@ -27,8 +27,8 @@ Definir qué se construye, para quién y cómo se ve, antes de programar.
 - [x] Licencia MIT
 - [x] Logo de DFX en el repo (`assets/brand/dfx-logo.svg`)
 - [x] Aviso de que el proyecto no está afiliado a Ableton
-- [ ] Nicko revisa el diseño y pide ajustes
-- [ ] Paleta de la app a partir del logo (blanco sobre oscuro)
+- [x] Nicko aprueba el diseño minimalista
+- [x] Paleta monocromática: blanco sobre oscuro, sin color de acento
 
 **Termina cuando:** Nicko aprueba el diseño.
 
