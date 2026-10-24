@@ -108,7 +108,8 @@ Lo que para nosotros es obvio, alguien que nunca vio la app no lo encuentra.
 
 ## 6. Lanzamiento
 
-- Publicar en GitHub Pages.
+- ~~Publicar en GitHub Pages~~: adelantado durante la etapa 4 para probar en el celular y compartir en las pruebas. Se publica solo en cada push a `main` (https://nickomz.github.io/dfx-live-lessons/).
+- Subdominio propio (propuesta: `lessons.nickomz.com`, a confirmar con Nicko).
 - Actualizar el README con el link y sacar el aviso de "en diseño".
 - Anunciarlo (comunidad DFX, Instagram).
 
