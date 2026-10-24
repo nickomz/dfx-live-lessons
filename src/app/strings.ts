@@ -24,6 +24,6 @@ export const t = {
   insert: 'Insertar en esta línea',
   bullet: 'Viñeta',
   divider: 'Línea divisoria',
-  free: 'Gratis y open source',
+  buyCoffee: 'Comprame un cafecito', // en inglés: "Buy me a coffee"
   notAffiliated: 'No afiliado a Ableton',
 };

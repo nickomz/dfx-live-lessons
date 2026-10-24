@@ -94,7 +94,7 @@ Lo más funcional posible sin complejizar la app.
 - El logo es blanco, sin color. La paleta de la app parte de ahí (fondo oscuro, logo y texto blancos); si hace falta un color de acento, proponémelo.
 - Licencia MIT para el código. El logo queda fuera de la licencia.
 - En el footer y en el README: "No está afiliado ni respaldado por Ableton".
-- Footer, en este orden: selector ES · EN, "Gratis y open source", link a GitHub, link a Cafecito (https://cafecito.app/nickomz), link a "nickomz.com" (https://nickomz.com) y "No afiliado a Ableton". Los links externos están todos en `src/app/links.ts`: cambiarlos es editar una línea.
+- Footer, en este orden: selector ES · EN, "nickomz.com" (https://nickomz.com), "Comprame un cafecito" (en inglés "Buy me a coffee", https://cafecito.app/nickomz), "GitHub" y "No afiliado a Ableton". Los links externos están todos en `src/app/links.ts`: cambiarlos es editar una línea.
 - La marca DFX vive en la interfaz de la app, nunca dentro de la lección exportada: la lección es del docente.
 
 ## Criterios de terminado (v1)
