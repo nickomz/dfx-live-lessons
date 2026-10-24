@@ -80,8 +80,10 @@ Lo más funcional posible sin complejizar la app.
 ## Marca
 
 - Nombre: **DFX Live Lessons**.
-- Assets en Google Drive, carpeta `Media / DFX` (id `1LZ6eRMFqOpkejKOSA9hIK1Apwgs-Sw68`): `dfx vector.svg` (logo) y subcarpetas `png` y `background`. Si no tenés acceso a Drive desde acá, pedime que los copie al repo.
-- No encontré colores definidos por escrito: tomalos del logo y proponémelos.
+- Logo: `assets/brand/dfx-logo.svg` (copiado de `dfx vector.svg` en Google Drive, carpeta `Media / DFX`). Es el único asset de marca que se usa; las carpetas `png` y `background` de Drive no.
+- El logo es blanco, sin color. La paleta de la app parte de ahí (fondo oscuro, logo y texto blancos); si hace falta un color de acento, proponémelo.
+- Licencia MIT para el código. El logo queda fuera de la licencia.
+- En el footer y en el README: "No está afiliado ni respaldado por Ableton".
 - Footer: "Gratis y open source", link a GitHub y link a Cafecito https://cafecito.app/nickomz.
 - La marca DFX vive en la interfaz de la app, nunca dentro de la lección exportada: la lección es del docente.
 

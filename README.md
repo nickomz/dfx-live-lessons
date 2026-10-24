@@ -50,7 +50,14 @@ Todo pasa en tu navegador. No hay cuentas, no hay servidor y nada de lo que escr
 ## Documentación del proyecto
 
 - [`docs/BRIEF.md`](docs/BRIEF.md): qué se construye, alcance y criterios de terminado.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md): etapas del desarrollo y en qué punto estamos.
 
 ## Apoyar el proyecto
 
 Es gratis y lo va a seguir siendo. Si te sirve, podés [invitarme un cafecito](https://cafecito.app/nickomz).
+
+## Licencia
+
+Código bajo licencia [MIT](LICENSE): podés usarlo, modificarlo y compartirlo libremente. El logo de DFX no está incluido en esa licencia.
+
+DFX Live Lessons es un proyecto independiente. No está afiliado ni respaldado por Ableton. Ableton y Live son marcas de Ableton AG.
