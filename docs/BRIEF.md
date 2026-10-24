@@ -56,6 +56,11 @@ Lo más funcional posible sin complejizar la app.
 - **Editar una lección existente**: arrastrar la carpeta `Lessons` a la app y que la abra. Leer carpetas arrastradas funciona en todos los navegadores.
 - Borrador guardado automáticamente en el navegador (incluidas las imágenes).
 - Interfaz en español e inglés.
+- **Funciona bien en el celular**, con una interfaz simple y moderna. Referencia de diseño (pantallas de escritorio y de celular): https://claude.ai/artifact/F9z9edTctJQf9rMdazNin1
+  - El panel de la lección se muestra a tamaño real y la barra de formato queda pegada arriba del teclado, con botones de al menos 44 px.
+  - Las páginas se manejan desde un panel que sube desde abajo: reordenar manteniendo apretado y arrastrando, agregar, renombrar y borrar.
+  - Imágenes desde la cámara, la galería o pegando una captura.
+  - Exportar descarga el mismo `.zip`. En el celular no se puede arrastrar una carpeta, así que para editar una lección existente se elige el `.zip` desde Archivos.
 
 ## Fuera de alcance (v2, no implementar)
 
@@ -84,5 +89,5 @@ Lo más funcional posible sin complejizar la app.
 1. Una lección de 3+ páginas, con texto con formato, imagen pegada y links, creada en la app, exportada y descomprimida, se ve en Live 12.4.7 igual que en el editor. Verificalo vos con el control de la compu y mostrame capturas lado a lado.
 2. Esa lección, arrastrada de vuelta a la app, se abre idéntica.
 3. Pegar desde un Google Doc con títulos, negritas y listas conserva lo que Live soporta. Como el formato de Live no tiene títulos, cada título pegado se convierte en una línea en negrita (igual que hace Ableton en sus lecciones).
-4. Funciona en Chrome, Safari y Firefox.
+4. Funciona en Chrome, Safari y Firefox de escritorio, y en Safari (iPhone) y Chrome (Android): se puede crear una lección de punta a punta desde el celular.
 5. Un docente sin explicación previa puede crear y colocar su primera lección.
