@@ -1,0 +1,21 @@
+{
+  "name": "dfx-live-lessons",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Editor web de lecciones que se ven dentro de Ableton Live",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.3"
+  }
+}
