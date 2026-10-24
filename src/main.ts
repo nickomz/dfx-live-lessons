@@ -12,7 +12,7 @@ import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } fr
 import { Divider, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
-import { findLessonFolders, readDropped, readPickedFiles } from './app/open';
+import { dirFromEntry, dirFromFileList, dirFromHandle, dirFromMap, readZip, scanLessons, type Dir, type FileRef, type ScanResult } from './app/open';
 import { readLessonFolder } from './lesson';
 
 const icon = {
@@ -414,10 +414,10 @@ function choose(title: string, help: string, options: { value: string; label: st
   });
 }
 
-async function openFiles(all: Map<string, Uint8Array>) {
-  // Si no hay ninguna lección, no se toca la que está abierta.
-  const folders = findLessonFolders(all);
-  if (!folders.length) return alert(t.notALesson);
+/** Abre lo que encontró la búsqueda. Si no hay lección, avisa y no toca la que está abierta. */
+async function openFound(result: ScanResult, fromFolder: boolean) {
+  if (result === 'too-many' || !result.length) return alert(fromFolder ? t.notALessonFolder : t.notALesson);
+  const folders = result;
   let folder = folders[0]!;
   if (folders.length > 1) {
     // Por ejemplo, la carpeta de un proyecto con una lección por cada .als.
@@ -444,17 +444,39 @@ async function openFiles(all: Map<string, Uint8Array>) {
   loadLesson(fromLesson(read.lessons.get(key)!, { assets: read.assets, languagesDiffer: read.languagesDiffer, setName: folder.setName }));
 }
 
-for (const [button, inputId] of [['open-zip', 'pick-zip'], ['open-folder', 'pick-folder']] as const) {
-  const input = $<HTMLInputElement>(inputId);
-  $(button).addEventListener('click', () => {
-    closeLessonsMenu();
-    input.click();
-  });
-  input.addEventListener('change', async () => {
-    if (input.files?.length) await openFiles(await readPickedFiles(input.files));
-    input.value = '';
-  });
-}
+const openZip = async (bytes: Uint8Array) => openFound(await scanLessons(dirFromMap(await readZip(bytes))), false);
+
+const pickZip = $<HTMLInputElement>('pick-zip');
+$('open-zip').addEventListener('click', () => {
+  closeLessonsMenu();
+  pickZip.click();
+});
+pickZip.addEventListener('change', async () => {
+  const file = pickZip.files?.[0];
+  pickZip.value = '';
+  if (file) await openZip(new Uint8Array(await file.arrayBuffer()));
+});
+
+// Chrome y Edge: showDirectoryPicker, que recorre de a poco y no pide "subir" archivos.
+// Safari y Firefox: <input webkitdirectory>, del que solo se miran los nombres.
+const pickFolder = $<HTMLInputElement>('pick-folder');
+$('open-folder').addEventListener('click', async () => {
+  closeLessonsMenu();
+  const picker = (window as { showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker;
+  if (!picker) return pickFolder.click();
+  let handle: FileSystemDirectoryHandle;
+  try {
+    handle = await picker();
+  } catch {
+    return; // Canceló.
+  }
+  await openFound(await scanLessons(dirFromHandle(handle)), true);
+});
+pickFolder.addEventListener('change', async () => {
+  const files = [...(pickFolder.files ?? [])];
+  pickFolder.value = '';
+  if (files.length) await openFound(await scanLessons(dirFromFileList(files)), true);
+});
 
 // Soltar una carpeta o un .zip en cualquier parte de la ventana (fuera de los diálogos).
 const hasFiles = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
@@ -464,7 +486,23 @@ document.addEventListener('dragover', (e) => {
 document.addEventListener('drop', async (e) => {
   if (!hasFiles(e) || (e.target as HTMLElement).closest('dialog')) return;
   e.preventDefault();
-  await openFiles(await readDropped(e.dataTransfer!));
+  const entries = [...e.dataTransfer!.items].map((i) => i.webkitGetAsEntry?.()).filter((x): x is FileSystemEntry => !!x);
+  const files = [...e.dataTransfer!.files];
+  if (entries.length === 1 && entries[0]!.isFile && /\.zip$/i.test(entries[0]!.name)) {
+    return openZip(new Uint8Array(await files[0]!.arrayBuffer()));
+  }
+  if (entries.length === 1 && entries[0]!.isDirectory) {
+    return openFound(await scanLessons(dirFromEntry(entries[0] as FileSystemDirectoryEntry)), true);
+  }
+  // Varios archivos o carpetas sueltos: se buscan como si estuvieran en una carpeta.
+  const loose: Dir = {
+    name: '',
+    list: async () =>
+      entries.map((en, i): Dir | FileRef =>
+        en.isDirectory ? dirFromEntry(en as FileSystemDirectoryEntry) : { name: en.name, read: async () => new Uint8Array(await files[i]!.arrayBuffer()) },
+      ),
+  };
+  await openFound(await scanLessons(loose), entries.some((en) => en.isDirectory));
 });
 
 const draft = await loadDraft();

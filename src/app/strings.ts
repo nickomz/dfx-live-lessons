@@ -12,6 +12,7 @@ export const t = {
   dropHint: 'También podés arrastrar la carpeta «… Lessons» o su .zip a cualquier parte de la página.',
   dropHintTouch: 'Elegí el .zip desde Archivos.',
   notALesson: 'No encontramos una lección en este archivo. Buscá la carpeta que termina en «Lessons» o su .zip.',
+  notALessonFolder: 'Esta carpeta no parece una lección. Elegí la carpeta que termina en «Lessons».',
   languagesDifferTitle: 'Esta lección tiene textos distintos por idioma',
   languagesDifferHelp: '¿Cuál editás? Al exportar, ese texto reemplaza a los demás idiomas.',
   replaceTranslations: 'Esta lección tenía textos distintos por idioma. Al exportar, el texto que editaste reemplaza a todos los idiomas. ¿Seguir?',
