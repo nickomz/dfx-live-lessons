@@ -35,9 +35,15 @@ Mi Set Project/
 | "Título" | línea entera en `*negrita*` | Funciona (no hay títulos reales) | Funciona |
 | Viñeta | `-> texto` al inicio de línea | Funciona: Live dibuja un `•` | Funciona |
 | Barra suelta | `Pads/texturas`, `1/4` | Funciona: una sola barra no se toma como cursiva | Funciona |
+| Dos o más barras en una línea | `pads/texturas/drones`, `1/4 y 1/8`, `youtube.com/watch/abc`, `Samples/Drums/Kick.wav` | Se ve literal, sin cursiva. También dentro de una viñeta, del texto de un `$Link` y junto a `*negrita*` | No probado |
+| Asteriscos sueltos | `-6 dB * 2`, `3 * 4 * 5`, `nota*importante` | Se ven literales, sin negrita | No probado |
+| Flecha en medio de una línea | `A -> B` | Se ve literal: la viñeta es solo `-> ` al inicio de línea | No probado |
+| Otros signos en el texto | `<menor>`, `$dolar`, `100%` | Se ven literales | No probado |
 | Acentos, ñ, ¿¡, comillas tipográficas, raya | texto normal | Funciona | Funciona |
 | Línea divisoria | línea con `Divider.tif` | Funciona (recurso interno de Live, no lleva archivo) | Funciona |
 | Comentario | `$Comment ...` | Funciona: no se ve | Funciona |
+
+Conclusión para el motor (prueba del 24/10/2026 en Live 12.4.7; Live 11.3 no se probó para este caso): no hace falta escapar barras ni asteriscos que aparecen dentro de una palabra o expresión. La cursiva y la negrita solo se activan con el marcador al borde de palabra: `/texto/` y `*texto*` con espacio o inicio de línea antes.
 
 ## Imágenes
 
@@ -91,6 +97,7 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live12-07-set-sin-als-error.png](capturas/live12-07-set-sin-als-error.png) | Error con un link `Set:` sin `.als` (Live 12) |
 | [live12-08-set-inexistente-error.png](capturas/live12-08-set-inexistente-error.png) | Error con un Set que no existe (Live 12) |
 | [live11-04-set-inexistente-error.png](capturas/live11-04-set-inexistente-error.png) | Error con un Set que no existe (Live 11) |
+| [live12-09-caracteres-sueltos.jpg](capturas/live12-09-caracteres-sueltos.jpg) | Barras, asteriscos, flechas y signos sueltos en texto común (Live 12) |
 
 ## Comportamiento de Live con la carpeta de la lección
 
