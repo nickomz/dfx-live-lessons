@@ -8,7 +8,7 @@ Cada etapa termina en algo que Nicko puede ver y aprobar antes de pasar a la sig
 |---|---|
 | 0. Estrategia | Terminada |
 | 1. Prueba en Live | Terminada |
-| 2. El motor | Pendiente |
+| 2. El motor | Terminada |
 | 3. Primera versión mínima | Pendiente |
 | 4. Versión completa (v1) | Pendiente |
 | 5. Prueba con docentes | Pendiente |
@@ -52,9 +52,11 @@ Resultado: [`docs/formato.md`](formato.md), aprobado por Nicko.
 
 El código que lee y escribe los archivos `Lessons*.txt`. No se ve, pero todo lo demás se apoya en él.
 
-- Lector y escritor del formato, con pruebas automáticas.
-- Prueba de ida y vuelta: abrir una lección y guardarla deja el archivo idéntico, carácter por carácter.
-- Los elementos que el editor no ofrece (links `Pref:`, `Browse…`, `$If`, etc.) se conservan intactos.
+- [x] Lector y escritor del formato, con pruebas automáticas (`src/lesson/`, `tests/`).
+- [x] Prueba de ida y vuelta: abrir una lección y guardarla deja el archivo idéntico, carácter por carácter.
+- [x] Los elementos que el editor no ofrece (links `Pref:`, `Browse…`, `$If`, etc.) se conservan intactos.
+
+Resultado (24/10/2026): 46 pruebas pasan. Las 926 lecciones instaladas en la Mac (Live 11.3, 12.0, 12.3 y 12.4, Factory Packs y User Library), la lección de la plantilla MZ y la de Lode se escriben idénticas byte por byte, y cada línea de texto y viñeta se reescribe en el formato canónico sin cambiar su contenido.
 
 **Termina cuando:** el round-trip es idéntico, carácter por carácter, con:
 - las lecciones que traen Live y los Packs instalados, solo como tests locales: no se suben al repo porque son propietarias;

@@ -47,6 +47,17 @@ Para **editar una lección que ya tenés**, arrastrá la carpeta `… Lessons` a
 
 Todo pasa en tu navegador. No hay cuentas, no hay servidor y nada de lo que escribís sale de tu compu. El borrador se guarda en el navegador para que no pierdas el trabajo.
 
+## Desarrollo
+
+Requiere Node 24 o superior.
+
+```bash
+npm install
+npm test
+```
+
+`npm test` corre las pruebas del motor que lee y escribe las lecciones. En una Mac con Live instalado, también verifica todas las lecciones de Live y de los Packs (sin copiarlas al repo).
+
 ## Documentación del proyecto
 
 - [`docs/BRIEF.md`](docs/BRIEF.md): qué se construye, alcance y criterios de terminado.
