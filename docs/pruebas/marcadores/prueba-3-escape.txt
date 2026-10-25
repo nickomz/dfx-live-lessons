@@ -1,0 +1,36 @@
+$Page 1. Barra con ZWSP
+$TargetName P1
+Ver ​/ruta sin cerrar
+
+Linea siguiente normal.
+
+$Page 2. Barra division
+$TargetName P2
+Ver ∕ruta sin cerrar
+
+Linea siguiente normal.
+
+$Page 3. Asterisco ZWSP
+$TargetName P3
+Ver ​*nota sin cerrar
+
+Linea siguiente normal.
+
+$Page 4. Asterisco operador
+$TargetName P4
+Ver ∗nota sin cerrar
+
+Linea siguiente normal.
+
+$Page 5. Cierre suelto barra
+$TargetName P5
+Hola pads/ texturas
+
+Linea siguiente normal.
+
+$Page 6. Cierre suelto asterisco
+$TargetName P6
+Hola nota* importante
+
+Linea siguiente normal.
+

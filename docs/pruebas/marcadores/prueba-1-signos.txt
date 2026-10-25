@@ -1,0 +1,61 @@
+$Page 1. Control
+$TargetName P1
+Hola /cursiva/ fin
+
+Linea siguiente normal.
+
+$Page 2. Cursiva punto
+$TargetName P2
+Hola /cursiva/. fin
+
+Linea siguiente normal.
+
+$Page 3. Cursiva coma
+$TargetName P3
+Hola /cursiva/, fin
+
+Linea siguiente normal.
+
+$Page 4. Cursiva parentesis
+$TargetName P4
+Hola (/cursiva/) fin
+
+Linea siguiente normal.
+
+$Page 5. Negrita punto
+$TargetName P5
+Hola *negrita*. fin
+
+Linea siguiente normal.
+
+$Page 6. Negrita coma
+$TargetName P6
+Hola *negrita*, fin
+
+Linea siguiente normal.
+
+$Page 7. Negrita parentesis
+$TargetName P7
+Hola (*negrita*) fin
+
+Linea siguiente normal.
+
+$Page 8. Arreglo cursiva
+$TargetName P8
+Hola /cursiva./ fin
+
+Linea siguiente normal.
+
+$Page 9. Arreglo negrita
+$TargetName P9
+Hola *negrita.* fin
+
+Linea siguiente normal.
+
+$Page 10. Fin de linea
+$TargetName P10
+Hola /cursiva/
+Hola *negrita*
+
+Linea siguiente normal.
+

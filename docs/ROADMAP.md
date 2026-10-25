@@ -86,16 +86,22 @@ Para pulir en la etapa 4:
 
 Todo lo que pide el alcance v1 del brief.
 
-- Imágenes: arrastrar, elegir, pegar; ajuste automático a 260/520 px.
-- Links entre páginas, a URLs, a email y a otro Set.
-- Pegar desde Google Docs y Notion.
-- Abrir una lección existente (carpeta o `.zip`).
-- Borrador guardado automáticamente.
-- Uso en el celular.
-- Interfaz en español e inglés.
-- Pantalla de instrucciones después de exportar (Mac y Windows).
+- [x] Imágenes: arrastrar, elegir, pegar; ajuste automático a 260/520 px.
+- [x] Links entre páginas, a URLs, a email y a otro Set.
+- [x] Pegar desde Google Docs y Notion.
+- [x] Abrir una lección existente (carpeta o `.zip`).
+- [x] Borrador guardado automáticamente.
+- [x] Uso en el celular.
+- [x] Interfaz en español e inglés.
+- [x] Pantalla de instrucciones después de exportar (Mac y Windows).
+- [x] Retoques del panel: peso del texto, viñeta cuadrada, divisor pegado al texto.
+- [ ] Prueba de Nicko en Safari, Firefox y su celular.
 
 **Termina cuando:** se cumplen los criterios de terminado del brief.
+
+Verificación final (24/10/2026): una lección armada en la app con formato, viñetas, divisor, una imagen pegada de 600 px y los cuatro tipos de link ([`docs/pruebas/verificacion-final Lessons/`](pruebas/verificacion-final%20Lessons/)) se ve bien en Live 12.4.7 y en Live 11.3 ([`live12-15`](capturas/live12-15-verificacion-final.jpg), [`live11-06`](capturas/live11-06-verificacion-final.jpg)). En Live 12 se probaron los cuatro links; en Live 11, el de página y el de Set. Reabierta en la app y exportada de nuevo sin cambios, sale idéntica byte por byte.
+
+La verificación encontró un error: Live no cierra la negrita ni la cursiva si el marcador va pegado a un signo (`/cursiva/.`), y el formato sigue hasta el final de la página. Se probó la regla exacta en Live y la app ahora escribe como Live lee (ver "Negrita y cursiva" en `docs/formato.md`).
 
 ## 5. Prueba con docentes
 

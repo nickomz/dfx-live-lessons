@@ -1,0 +1,23 @@
+$Page Lección final
+$TargetName Pagina1
+*VERIFICACIÓN FINAL*
+
+Texto con *negrita* y /cursiva./ Acentos: áéíóú ñ ¿¡ “comillas”.
+Media palabra: *supernegrita* y las dos juntas: *ambas.*
+Literales: ​/Samples, pads/​ texturas, ​*nota, 1/4 y 3 * 4.
+
+-> Primera viñeta
+-> Segunda viñeta
+Divider.tif
+Imagen pegada (600 px, se achica a 260):
+Captura-de-pantalla.png
+Links:
+$Link Ir a la segunda página <GotoPage:Pagina2>
+$Link Canal de Ableton en YouTube <https://youtube.com/@Ableton>
+$Link Escribime un email <mailto:prueba@ejemplo.com>
+$Link Abrir el Set Ejercicio 2 <Set:Ejercicio 2.als>
+$Page Segunda página
+$TargetName Pagina2
+Llegaste con el link a página.
+
+$Link Volver a la primera <GotoPage:Pagina1>

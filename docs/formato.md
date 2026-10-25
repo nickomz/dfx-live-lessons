@@ -30,8 +30,8 @@ Mi Set Project/
 |---|---|---|---|
 | Página | `$Page Título` + `$TargetName id` | Funciona. El título aparece en la cabecera del panel. | Funciona |
 | Párrafo | texto, separado por línea en blanco | Funciona | Funciona |
-| Negrita | `*texto*` | Funciona, también en medio de una frase | Funciona |
-| Cursiva | `/texto/` | Funciona, también en medio de una frase | Funciona |
+| Negrita | `*texto*` | Funciona, también en medio de una frase, con las reglas de "Negrita y cursiva" | Funciona |
+| Cursiva | `/texto/` | Funciona, también en medio de una frase, con las reglas de "Negrita y cursiva" | Funciona |
 | "Título" | línea entera en `*negrita*` | Funciona (no hay títulos reales) | Funciona |
 | Viñeta | `-> texto` al inicio de línea | Funciona: Live dibuja un `•` | Funciona |
 | Barra suelta | `Pads/texturas`, `1/4` | Funciona: una sola barra no se toma como cursiva | Funciona |
@@ -43,7 +43,34 @@ Mi Set Project/
 | Línea divisoria | línea con `Divider.tif` | Funciona (recurso interno de Live, no lleva archivo) | Funciona |
 | Comentario | `$Comment ...` | Funciona: no se ve | Funciona |
 
-Conclusión para el motor (prueba del 24/10/2026 en Live 12.4.7; Live 11.3 no se probó para este caso): no hace falta escapar barras ni asteriscos que aparecen dentro de una palabra o expresión. La cursiva y la negrita solo se activan con el marcador al borde de palabra: `/texto/` y `*texto*` con espacio o inicio de línea antes.
+Conclusión para el motor: las barras y asteriscos dentro de una palabra o expresión se ven literales sin hacer nada. Los que tocan un espacio sí cuentan como marcadores: ver la sección siguiente.
+
+## Negrita y cursiva
+
+Probado el 24/10/2026 en Live 12.4.7 (lecciones de prueba en [`docs/pruebas/marcadores/`](pruebas/marcadores/)). Confirmado en Live 11.3 con la lección de la verificación final.
+
+| Caso | Ejemplo | Resultado |
+|---|---|---|
+| Normal | `Hola /cursiva/ fin` | Funciona |
+| Marcador pegado a un signo al cerrar | `/cursiva/.` · `/cursiva/,` · `*negrita*.` | **No cierra**: la barra o el asterisco se ve, y el formato sigue hasta el final de la página (párrafos siguientes incluidos) |
+| Marcador después de un signo al abrir | `(/cursiva/)` · `"/cursiva/"` · `(*negrita*)` | No abre: todo literal |
+| Signo adentro del formato | `/cursiva./` · `*negrita.*` | Funciona (el signo sale con formato) |
+| Fin de línea | `Hola /cursiva/` | Funciona |
+| Negrita y cursiva juntas | `*/las dos/*` · `/*las dos*/` | **No existe**: sale solo el de afuera, con el otro marcador literal |
+| Dos tramos pegados | `*uno**dos*` | Una sola negrita con `**` literal |
+| Marcador suelto que abre | `Ver /ruta` · `Ver *nota` | **El formato sigue hasta el final de la página** |
+| Marcador suelto que cierra | `pads/ texturas` · `nota* importante` | El marcador desaparece |
+| Espacio de ancho cero (U+200B) antes del marcador | `Ver /ruta`, con U+200B antes de la barra | Literal y sin espacio visible |
+| Barra de división (U+2215) | `Ver ∕ruta` | Se ve otro carácter, más ancho |
+| Asterisco matemático (U+2217) | `Ver ∗nota` | No se ve: Live no tiene ese carácter |
+
+La regla: un `*` o una `/` **abre** formato si está al principio de la línea o después de un espacio, y lo sigue algo que no es espacio. **Cierra** si está pegado a lo anterior y lo sigue un espacio o el fin de la línea. El formato abierto sigue hasta que cierra o hasta el final de la página. En las lecciones instaladas de Live, Ableton usa la regla bien 1740 veces y la rompe 3 (`*CV 2*.`, por ejemplo).
+
+Lo que hace la app:
+- Escribe los marcadores al borde de palabras enteras: si se marcó una palabra con un signo pegado, el signo entra en el formato (`/cursiva./`); si se marcó media palabra, el formato toma la palabra entera. El editor muestra lo mismo.
+- Negrita y cursiva no se combinan: poner una saca la otra.
+- Un `*` o una `/` que el docente escribió como texto y que Live tomaría como marcador lleva un espacio de ancho cero al lado (antes si abriría, después si cerraría). Al leer la lección, la app los saca.
+- Una palabra pegada a un link no lleva formato (el marcador no tendría un espacio al lado).
 
 ## Imágenes
 
@@ -101,6 +128,8 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live12-13-app-imagenes.jpg](capturas/live12-13-app-imagenes.jpg) | Imágenes exportadas por la app: un JPG y una de 400 px, convertidas a PNG (Live 12) |
 | [live12-14-app-links.jpg](capturas/live12-14-app-links.jpg) | Los cuatro tipos de link creados en la app (Live 12) |
 | [comparacion-panel-tramo7.png](capturas/comparacion-panel-tramo7.png) | El panel del editor (izquierda) al lado de Live 12: peso del texto, viñeta cuadrada y divisor |
+| [live12-15-verificacion-final.jpg](capturas/live12-15-verificacion-final.jpg) | Verificación final: lección armada en la app con imagen y los cuatro links (Live 12) |
+| [live11-06-verificacion-final.jpg](capturas/live11-06-verificacion-final.jpg) | La misma lección en Live 11 |
 
 ## Páginas vacías
 

@@ -1,0 +1,48 @@
+$Page 1. Ambas negrita afuera
+$TargetName P1
+Hola */negrita cursiva/* fin
+
+Linea siguiente normal.
+
+$Page 2. Ambas cursiva afuera
+$TargetName P2
+Hola /*cursiva negrita*/ fin
+
+Linea siguiente normal.
+
+$Page 3. Cursiva al final
+$TargetName P3
+Hola *negrita /cursiva/* fin
+
+Linea siguiente normal.
+
+$Page 4. Cursiva al inicio
+$TargetName P4
+Hola */cursiva/ negrita* fin
+
+Linea siguiente normal.
+
+$Page 5. Barra sin cerrar
+$TargetName P5
+Ver /ruta sin cerrar
+
+Linea siguiente normal.
+
+$Page 6. Asterisco sin cerrar
+$TargetName P6
+Ver *nota sin cerrar
+
+Linea siguiente normal.
+
+$Page 7. Dos tramos pegados
+$TargetName P7
+Hola *uno**dos* fin
+
+Linea siguiente normal.
+
+$Page 8. Entre comillas
+$TargetName P8
+Hola "/cursiva/" fin
+
+Linea siguiente normal.
+
