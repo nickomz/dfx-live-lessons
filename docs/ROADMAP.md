@@ -10,7 +10,7 @@ Cada etapa termina en algo que Nicko puede ver y aprobar antes de pasar a la sig
 | 1. Prueba en Live | Terminada |
 | 2. El motor | Terminada |
 | 3. Primera versión mínima | Terminada |
-| 4. Versión completa (v1) | Pendiente |
+| 4. Versión completa (v1) | Terminada |
 | 5. Prueba con docentes | Pendiente |
 | 6. Lanzamiento | Pendiente |
 
@@ -80,7 +80,7 @@ Para pulir en la etapa 4:
 - Live muestra el texto con más peso que Jost: comparar con una variante más gruesa.
 - Las viñetas de Live son un cuadradito (▪), no un punto.
 - En Live el divisor va pegado al texto de arriba y de abajo.
-- Probar la descarga del zip en Safari y Firefox (en Chrome ya la confirmó Nicko el 24/10/2026).
+- ~~Probar la descarga del zip en Safari y Firefox~~: confirmada por Nicko en la etapa 4.
 
 ## 4. Versión completa (v1)
 
@@ -95,7 +95,7 @@ Todo lo que pide el alcance v1 del brief.
 - [x] Interfaz en español e inglés.
 - [x] Pantalla de instrucciones después de exportar (Mac y Windows).
 - [x] Retoques del panel: peso del texto, viñeta cuadrada, divisor pegado al texto.
-- [ ] Prueba de Nicko en Safari, Firefox y su celular.
+- [x] Prueba de Nicko en Safari, Firefox y su celular (24/10/2026, con la app publicada: anduvo todo, incluida la descarga del zip).
 
 **Termina cuando:** se cumplen los criterios de terminado del brief.
 
