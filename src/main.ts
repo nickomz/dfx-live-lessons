@@ -1,15 +1,23 @@
 import './styles.css';
 import { Editor } from '@tiptap/core';
-import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
-import Italic from '@tiptap/extension-italic';
 import Text from '@tiptap/extension-text';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import logoUrl from '../assets/brand/dfx-logo.svg';
 import { links } from './app/links';
 import { lang, setLang, t } from './app/strings';
 import { fromLesson, newLesson, newPage, type EditorLesson, type EditorPage } from './editor/document';
-import { Divider, LessonImage, LessonLink, LessonParagraph, Preserved, PreservedInline } from './editor/extensions';
+import {
+  Divider,
+  LessonBold,
+  LessonImage,
+  LessonItalic,
+  LessonLink,
+  LessonParagraph,
+  Preserved,
+  PreservedInline,
+  WholeWords,
+} from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
 import { cleanPastedHTML } from './editor/paste';
 import { imageName, processImage } from './app/images';
@@ -133,8 +141,9 @@ const editor = new Editor({
     Document,
     LessonParagraph,
     Text,
-    Bold,
-    Italic,
+    LessonBold,
+    LessonItalic,
+    WholeWords,
     Divider,
     Preserved,
     LessonImage.configure({ resolve: (file) => imageUrl(file) }),

@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseLesson, parseInlines, serializeBlock, serializeLesson, type Block } from '../src/lesson';
+import { parseLesson, parseInlines, serializeBlock, serializeLesson, type Block, type Inline } from '../src/lesson';
 
 function lessonDirs(): string[] {
   const dirs = [join(homedir(), 'Music/Ableton/Factory Packs'), join(homedir(), 'Music/Ableton/User Library')];
@@ -27,6 +27,17 @@ function lessonFilesIn(dir: string): string[] {
 const files = lessonDirs().flatMap(lessonFilesIn);
 
 // Sin `raw`, un bloque se escribe en el formato canónico; volver a leerlo tiene que dar lo mismo.
+/** Junta los tramos de texto seguidos (sin formato) para comparar solo el texto visible. */
+function merge(inlines: Inline[]): Inline[] {
+  const out: Inline[] = [];
+  for (const n of inlines) {
+    const last = out[out.length - 1];
+    if (n.type === 'text' && last?.type === 'text') out[out.length - 1] = { type: 'text', text: last.text + n.text };
+    else out.push(n.type === 'text' ? { type: 'text', text: n.text } : n);
+  }
+  return out;
+}
+
 function withoutRaw(block: Block): Block {
   if (block.type === 'unsupported') return block;
   const { raw: _raw, ...rest } = block;
@@ -42,15 +53,20 @@ describe.skipIf(files.length === 0)(`lecciones instaladas (${files.length} archi
     expect(failed).toEqual([]);
   });
 
-  it('cada viñeta y línea de texto se reescribe en formato canónico sin cambiar su contenido', () => {
+  // Lo que la app escribe, al volver a leerlo y escribirlo, da lo mismo, y el texto visible no cambia.
+  // (El formato puede moverse a palabras enteras: así lo lee Live.)
+  it('cada viñeta y línea de texto se reescribe en formato canónico sin cambiar su texto', () => {
     const failed: string[] = [];
+    const visible = (inlines: Inline[]) => JSON.stringify(inlines.map((n) => (n.type === 'text' ? n.text : n)));
     for (const f of files) {
       for (const page of parseLesson(new Uint8Array(readFileSync(f))).pages) {
         for (const block of page.blocks) {
           if (block.type !== 'text' && block.type !== 'bullet') continue;
+          const read = (line: string) => (block.type === 'bullet' ? parseInlines(line.slice(3)) : parseInlines(line));
           const canonical = serializeBlock(withoutRaw(block));
-          const reparsed = block.type === 'bullet' ? parseInlines(canonical.slice(3)) : parseInlines(canonical);
-          if (JSON.stringify(reparsed) !== JSON.stringify(block.inlines)) failed.push(`${f}: ${block.raw}`);
+          const again = serializeBlock({ ...withoutRaw(block), inlines: read(canonical) } as typeof block);
+          const sameText = visible(merge(read(canonical))) === visible(merge(block.inlines));
+          if (again !== canonical || !sameText) failed.push(`${f}: ${block.raw}`);
         }
       }
     }

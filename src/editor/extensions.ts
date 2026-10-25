@@ -1,7 +1,11 @@
 // Nodos del editor. Solo existe lo que Live muestra (docs/formato.md): párrafos con
 // negrita y cursiva, viñetas y la línea divisoria. Lo demás se conserva como "preserved".
 
-import { InputRule, Mark, Node, mergeAttributes } from '@tiptap/core';
+import { Extension, InputRule, Mark, Node, mergeAttributes } from '@tiptap/core';
+import Bold from '@tiptap/extension-bold';
+import Italic from '@tiptap/extension-italic';
+import type { MarkType } from '@tiptap/pm/model';
+import { Plugin } from '@tiptap/pm/state';
 import Paragraph from '@tiptap/extension-paragraph';
 import { t } from '../app/strings';
 import { buildTarget, type Block } from '../lesson';
@@ -178,3 +182,61 @@ function unwrapRedirect(href: string): string {
   }
   return href;
 }
+
+// Live no muestra negrita y cursiva juntas (docs/formato.md): poner una saca la otra.
+export const LessonBold = Bold.extend({ excludes: 'italic' });
+export const LessonItalic = Italic.extend({ excludes: 'bold' });
+
+/**
+ * Live solo marca formato en palabras enteras: el marcador va pegado a un espacio o al borde
+ * de la línea. Si se marca media palabra (o la palabra lleva un signo pegado), el formato se
+ * extiende a toda la palabra, igual que como va a salir en Live.
+ */
+export const WholeWords = Extension.create({
+  name: 'wholeWords',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        appendTransaction(trs, _old, state) {
+          if (!trs.some((tr) => tr.docChanged || tr.steps.length)) return null;
+          const { bold, italic } = state.schema.marks;
+          if (!bold || !italic) return null;
+          const tr = state.tr;
+          state.doc.descendants((block, blockPos) => {
+            if (!block.isTextblock) return true;
+            // Cada palabra toma el formato de su primer carácter con formato (como lo escribe la
+            // app); lo que no es texto corta la palabra.
+            let word: { from: number; to: number; styles: (MarkType | null)[] } | null = null;
+            const finish = () => {
+              const style = word?.styles.find((st) => st);
+              if (word && style && word.styles.some((st) => st !== style)) tr.addMark(word.from, word.to, style.create());
+              word = null;
+            };
+            block.forEach((node, offset) => {
+              if (!node.isText) return finish();
+              const start = blockPos + 1 + offset;
+              // Negrita y cursiva juntas (por ejemplo, pegadas de otro lado): queda la negrita.
+              if (node.marks.some((m) => m.type === bold) && node.marks.some((m) => m.type === italic)) {
+                tr.removeMark(start, start + node.nodeSize, italic);
+              }
+              const style = node.marks.some((m) => m.type === bold) ? bold : node.marks.some((m) => m.type === italic) ? italic : null;
+              let pos = start;
+              for (const ch of node.text!) {
+                if (/\s/.test(ch)) finish();
+                else {
+                  word ??= { from: pos, to: pos, styles: [] };
+                  word.to = pos + ch.length;
+                  word.styles.push(style);
+                }
+                pos += ch.length;
+              }
+            });
+            finish();
+            return false;
+          });
+          return tr.docChanged ? tr : null;
+        },
+      }),
+    ];
+  },
+});
