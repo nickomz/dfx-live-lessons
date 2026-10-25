@@ -2,6 +2,7 @@
 // del zip y las instrucciones para llevar la lección a Live.
 
 import { cleanSetName, exportZip, type EditorLesson } from '../editor/document';
+import { links } from './links';
 import { t } from './strings';
 
 interface ExportOptions {
@@ -128,6 +129,7 @@ export function setupExport({ getLesson, onChange, info, button }: ExportOptions
 └── <b>${folder}/</b></pre>
         <p class="muted small">${t.doneNotes}</p>
         <button class="primary wide" id="done-ok">${t.understood}</button>
+        <a class="feedback-link" href="${links.feedback}" target="_blank" rel="noopener">${t.feedbackAfterExport}</a>
       </div>`;
     doneDialog.querySelector('#done-ok')!.addEventListener('click', () => doneDialog.close());
     doneDialog.showModal();

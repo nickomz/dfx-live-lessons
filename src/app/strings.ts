@@ -86,6 +86,8 @@ const es = {
   imageError: 'No pudimos abrir esa imagen. Probá con un PNG o JPG.',
   language: 'Idioma de la interfaz',
   donate: 'Comprame un cafecito',
+  feedback: 'Sugerencias',
+  feedbackAfterExport: '¿Qué te pareció? Contame en 1 minuto ↗',
 };
 
 const en: typeof es = {
@@ -173,6 +175,8 @@ const en: typeof es = {
   imageError: 'We couldn’t open that image. Try a PNG or JPG.',
   language: 'Interface language',
   donate: 'Buy me a coffee',
+  feedback: 'Feedback',
+  feedbackAfterExport: 'How was it? Tell me in 1 minute ↗',
 };
 
 export type Lang = 'es' | 'en';

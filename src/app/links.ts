@@ -8,4 +8,6 @@ export const links = {
     en: 'https://paypal.me/nickomz',
   },
   github: 'https://github.com/nickomz/dfx-live-lessons',
+  // Formulario de Notion (bilingüe) para sugerencias y comentarios.
+  feedback: 'https://app.notion.com/p/663c3853a57042d7a9a0f950409181de?v=40455462af4d8156a0d4000cdc711145&source=copy_link',
 };

@@ -109,6 +109,7 @@ Lo que para nosotros es obvio, alguien que nunca vio la app no lo encuentra.
 
 - Pasarle el link a 2 o 3 docentes y mirar dónde se traban.
 - Corregir lo que aparezca.
+- Las sugerencias llegan también por el formulario de Notion que la app enlaza en el footer ("Sugerencias") y después de exportar.
 
 **Termina cuando:** un docente arma y coloca su primera lección sin ayuda.
 

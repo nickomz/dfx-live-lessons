@@ -157,6 +157,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .dlg h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
 .dlg p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
 .muted { color: var(--faint); font-size: 13px; }
+.feedback-link { align-self: center; font-size: 13px; color: var(--faint); text-decoration: none; }
+.feedback-link:hover { color: var(--text); text-decoration: underline; }
 .dlg p.small { font-size: 13px; color: var(--faint); }
 .field-label { font-size: 13px; color: var(--muted); margin-bottom: -10px; }
 .field { display: flex; align-items: center; height: 50px; padding: 0 14px; background: var(--bg); border: 1px solid #3a3a3a; border-radius: 12px; }
