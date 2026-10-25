@@ -254,7 +254,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* Celular: barra de formato arriba del teclado, páginas en panel inferior */
 .touch-bar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: space-around;
+  /* top lo calcula updateTouchBar (pie de la parte visible); sin visualViewport, al pie de la ventana. */
+  position: fixed; left: 0; right: 0; top: 100%; transform: translateY(-100%); z-index: 30; display: flex; justify-content: space-around;
   padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line);
 }
 .touch-bar button {

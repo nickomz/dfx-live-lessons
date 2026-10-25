@@ -413,10 +413,11 @@ touchBar.addEventListener('click', () => setTimeout(updateTouchBar, 0));
 function updateTouchBar() {
   touchBar.hidden = !editor.isFocused;
   if (touchBar.hidden) return;
-  // Con el teclado abierto, visualViewport es más bajo que la ventana: la barra va justo encima.
+  // La barra va al pie de la parte visible de la pantalla, justo arriba del teclado. En el
+  // iPhone el teclado no achica la página (solo visualViewport): con "bottom: 0" la barra
+  // quedaba detrás del teclado, al final de la página.
   const vv = window.visualViewport;
-  const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-  touchBar.style.bottom = `${keyboard}px`;
+  touchBar.style.top = vv ? `${vv.offsetTop + vv.height}px` : '';
   $('tb-bold').setAttribute('aria-pressed', String(editor.isActive('bold')));
   $('tb-italic').setAttribute('aria-pressed', String(editor.isActive('italic')));
   $('tb-link').setAttribute('aria-pressed', String(editor.isActive('link')));
