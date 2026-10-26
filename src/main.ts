@@ -20,7 +20,7 @@ import {
 } from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
 import { cleanPastedHTML } from './editor/paste';
-import { imageName, ORIGINALS, processImage, WIDE } from './app/images';
+import { imageName, ORIGINALS, processImage } from './app/images';
 import { setupCrop } from './app/crop';
 import { NodeSelection } from '@tiptap/pm/state';
 import { setupExport } from './app/export';
@@ -116,11 +116,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <input type="file" id="pick-image" accept="image/*" multiple hidden>
       </div>
       <div class="popover pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
-    </div>
-    <div class="toast" id="toast" role="status" hidden>
-      <span id="toast-text"></span>
-      <button id="toast-action">${t.imageCrop}</button>
-      <button id="toast-close" aria-label="${t.close}">${icon.close}</button>
     </div>
     <div class="touch-bar" id="touch-bar" role="toolbar" aria-label="${t.format}" hidden>
       <button id="tb-bold" class="b" aria-label="${t.bold}" aria-pressed="false">B</button>
@@ -635,39 +630,25 @@ function storeImage(name: string, processed: { small: Uint8Array; large?: Uint8A
 /** La mejor versión que hay de una imagen para recortarla: la original, o la copia grande. */
 const bestImage = (name: string) => lesson.assets.get(`${ORIGINALS}${name}`) ?? lesson.assets.get(`Large/${name}`) ?? lesson.assets.get(name);
 
-let cropping = '';
-const { openCrop } = setupCrop({
-  onApply: async (blob, fit) => {
-    storeImage(cropping, await processImage(blob, { fit }));
-    changed();
-  },
-});
-function cropImage(name: string) {
-  const bytes = bestImage(name);
-  if (!bytes) return;
-  cropping = name;
-  hideToast();
-  void openCrop(bytes);
+const { openCrop } = setupCrop();
+
+/**
+ * Abre la ventana de ajuste para una imagen que se está agregando y devuelve sus versiones
+ * para Live: tal cual ("Usar así") o recortada.
+ */
+async function adjustNewImage(file: File, bytes: Uint8Array) {
+  const result = await openCrop(bytes, { insert: true });
+  return result?.kind === 'crop' ? processImage(result.blob, { fit: result.fit }) : processImage(file);
 }
 
-// Aviso que no frena nada: una imagen muy ancha se ve muy chica en Live.
-let toastTimer = 0;
-function hideToast() {
-  $('toast').hidden = true;
-  clearTimeout(toastTimer);
-}
-function suggestCrop(name: string) {
-  $('toast-text').textContent = t.wideImage;
-  $('toast').hidden = false;
-  $('toast-action').onclick = () => cropImage(name);
-  clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(hideToast, 12000);
-}
-$('toast-close').addEventListener('click', hideToast);
-
-$('img-crop').addEventListener('click', () => {
+$('img-crop').addEventListener('click', async () => {
   const image = selectedImage();
-  if (image) cropImage(image.file);
+  const bytes = image && bestImage(image.file);
+  if (!image || !bytes) return;
+  const result = await openCrop(bytes);
+  if (result?.kind !== 'crop') return;
+  storeImage(image.file, await processImage(result.blob, { fit: result.fit }));
+  changed();
 });
 const pickReplace = $<HTMLInputElement>('pick-replace');
 $('img-replace').addEventListener('click', () => pickReplace.click());
@@ -676,16 +657,16 @@ pickReplace.addEventListener('change', async () => {
   pickReplace.value = '';
   const image = selectedImage();
   if (!file || !image) return;
+  const bytes = new Uint8Array(await file.arrayBuffer());
   let processed;
   try {
-    processed = await processImage(file);
+    processed = await adjustNewImage(file, bytes);
   } catch {
     return alert(t.imageError);
   }
-  lesson.assets.set(`${ORIGINALS}${image.file}`, new Uint8Array(await file.arrayBuffer()));
+  lesson.assets.set(`${ORIGINALS}${image.file}`, bytes);
   storeImage(image.file, processed);
   changed();
-  if (processed.width > WIDE) suggestCrop(image.file);
 });
 $('img-remove').addEventListener('click', () => {
   editor.chain().focus().deleteSelection().run();
@@ -695,11 +676,12 @@ $('img-remove').addEventListener('click', () => {
 /** Convierte las imágenes para Live, las guarda en la lección y las inserta en el texto. */
 async function addImages(files: File[], pos?: number) {
   const nodes = [];
-  let wide = '';
+  // Una ventana de ajuste por imagen, en orden.
   for (const file of files) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
     let processed;
     try {
-      processed = await processImage(file);
+      processed = await adjustNewImage(file, bytes);
     } catch {
       alert(t.imageError);
       continue;
@@ -708,16 +690,14 @@ async function addImages(files: File[], pos?: number) {
     const name = imageName(file.name, used);
     lesson.assets.set(name, processed.small);
     if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
-    lesson.assets.set(`${ORIGINALS}${name}`, new Uint8Array(await file.arrayBuffer()));
+    lesson.assets.set(`${ORIGINALS}${name}`, bytes);
     nodes.push({ type: 'image', attrs: { file: name } });
-    if (processed.width > WIDE) wide = name;
   }
   if (!nodes.length) return;
   const chain = editor.chain().focus();
   if (pos !== undefined) chain.insertContentAt(pos, [...nodes, { type: 'paragraph' }]).run();
   else chain.insertContent([...nodes, { type: 'paragraph' }]).run();
   changed();
-  if (wide) suggestCrop(wide);
 }
 
 // --- Abrir una lección y borrador ------------------------------------------------

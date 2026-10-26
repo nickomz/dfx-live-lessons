@@ -5,8 +5,6 @@
 
 export const WIDTH = 260;
 export const LARGE_WIDTH = 520;
-/** Más ancha que esto, en Live se ve muy chica: se sugiere recortarla. */
-export const WIDE = 800;
 /** La imagen original de cada una, para volver a recortar sin perder calidad. No se exporta. */
 export const ORIGINALS = 'Originales/';
 
