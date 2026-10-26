@@ -32,7 +32,7 @@ describe('imágenes en el editor', () => {
 });
 
 describe('exportar imágenes', () => {
-  it('incluye las imágenes usadas con su copia en Large/ y deja afuera las borradas', () => {
+  it('incluye las imágenes usadas con su copia en Large/ y deja afuera las borradas y las originales', () => {
     const page = newPage([], 'Uno');
     page.doc = { type: 'doc', content: [{ type: 'image', attrs: { file: 'kick.png' } }] };
     const assets = new Map([
@@ -40,6 +40,7 @@ describe('exportar imágenes', () => {
       ['Large/kick.png', new Uint8Array([2])],
       ['borrada.png', new Uint8Array([3])],
       ['Large/borrada.png', new Uint8Array([4])],
+      ['Originales/kick.png', new Uint8Array([5])],
     ]);
     const files = exportFiles({ ...newLesson(), pages: [page], assets });
     expect([...files.keys()].filter((k) => !k.startsWith('Lessons'))).toEqual(['kick.png', 'Large/kick.png']);

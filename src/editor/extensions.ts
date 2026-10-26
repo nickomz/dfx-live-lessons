@@ -127,6 +127,8 @@ export const LessonImage = Node.create<LessonImageOptions>({
       file: { default: '', rendered: false },
       alt: { default: null, rendered: false },
       raw: { default: null, rendered: false },
+      // Cambia al recortar o reemplazar la imagen, para que el editor la vuelva a dibujar.
+      rev: { default: 0, rendered: false },
     };
   },
   renderHTML({ node }) {

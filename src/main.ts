@@ -20,7 +20,9 @@ import {
 } from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
 import { cleanPastedHTML } from './editor/paste';
-import { imageName, processImage } from './app/images';
+import { imageName, ORIGINALS, processImage, WIDE } from './app/images';
+import { setupCrop } from './app/crop';
+import { NodeSelection } from '@tiptap/pm/state';
 import { setupExport } from './app/export';
 import { loadDraft, saveDraft } from './app/draft';
 import { dirFromEntry, dirFromFileList, dirFromHandle, dirFromMap, readZip, scanLessons, type Dir, type FileRef, type ScanResult } from './app/open';
@@ -97,6 +99,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <button id="link-unlink">${t.linkRemove}</button>
         </div>
       </div>
+      <div class="link-card image-card" id="image-card" role="dialog" aria-label="${t.image}" hidden>
+        <div class="link-actions">
+          <button id="img-crop">${t.imageCrop}</button>
+          <button id="img-replace">${t.imageReplace}</button>
+          <button id="img-remove">${t.imageRemove}</button>
+        </div>
+        <input type="file" id="pick-replace" accept="image/*" hidden>
+      </div>
       <button class="inserter" id="inserter" aria-label="${t.insert}" aria-haspopup="menu" aria-expanded="false" hidden>${icon.plus}</button>
       <div class="popover insert-menu" id="insert-menu" role="menu" hidden>
         <button class="menu-item" role="menuitem" id="ins-bullet">${icon.bullet}${t.bullet}</button>
@@ -106,6 +116,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <input type="file" id="pick-image" accept="image/*" multiple hidden>
       </div>
       <div class="popover pages" id="pages-pop" role="dialog" aria-label="${t.pages}" hidden></div>
+    </div>
+    <div class="toast" id="toast" role="status" hidden>
+      <span id="toast-text"></span>
+      <button id="toast-action">${t.imageCrop}</button>
+      <button id="toast-close" aria-label="${t.close}">${icon.close}</button>
     </div>
     <div class="touch-bar" id="touch-bar" role="toolbar" aria-label="${t.format}" hidden>
       <button id="tb-bold" class="b" aria-label="${t.bold}" aria-pressed="false">B</button>
@@ -362,6 +377,19 @@ function updateFloating() {
     linkCard.hidden = true;
   }
 
+  // Con una imagen seleccionada aparece su tarjeta: recortar, reemplazar, quitar.
+  const imageCard = $('image-card');
+  const imageCardFocused = imageCard.contains(document.activeElement);
+  const image = selectedImage();
+  if ((editor.isFocused || imageCardFocused) && image) {
+    const box = (editor.view.nodeDOM(image.pos) as HTMLElement).getBoundingClientRect();
+    imageCard.hidden = false;
+    imageCard.style.left = `${Math.max(box.left - wrap.left, 0)}px`;
+    imageCard.style.top = `${box.bottom - wrap.top + 6}px`;
+  } else if (!imageCardFocused) {
+    imageCard.hidden = true;
+  }
+
   // En pantallas táctiles el formato va en la barra de arriba del teclado.
   if (isTouch) {
     bubble.hidden = true;
@@ -400,7 +428,7 @@ function updateFloating() {
 }
 
 // mousedown + preventDefault: el editor no pierde la selección al tocar la barrita.
-for (const el of [bubble, inserter, insertMenu, $('link-card')]) el.addEventListener('mousedown', (e) => e.preventDefault());
+for (const el of [bubble, inserter, insertMenu, $('link-card'), $('image-card')]) el.addEventListener('mousedown', (e) => e.preventDefault());
 
 // --- Celular: barra de formato pegada arriba del teclado ---------------------------
 
@@ -583,9 +611,91 @@ function clearImageUrls() {
 
 const imageFiles = (list?: FileList) => [...(list ?? [])].filter((f) => f.type.startsWith('image/'));
 
+/** La imagen seleccionada en el editor, si hay una. */
+function selectedImage(): { pos: number; file: string } | null {
+  const sel = editor.state.selection;
+  return sel instanceof NodeSelection && sel.node.type.name === 'image' ? { pos: sel.from, file: String(sel.node.attrs.file) } : null;
+}
+
+/** Guarda las versiones para Live de una imagen y la vuelve a dibujar donde aparezca. */
+function storeImage(name: string, processed: { small: Uint8Array; large?: Uint8Array }) {
+  lesson.assets.set(name, processed.small);
+  if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
+  else lesson.assets.delete(`Large/${name}`);
+  const url = imageUrls.get(name);
+  if (url) URL.revokeObjectURL(url);
+  imageUrls.delete(name);
+  const tr = editor.state.tr;
+  editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'image' && node.attrs.file === name) tr.setNodeMarkup(pos, undefined, { ...node.attrs, rev: Number(node.attrs.rev) + 1 });
+  });
+  if (tr.docChanged) editor.view.dispatch(tr);
+}
+
+/** La mejor versión que hay de una imagen para recortarla: la original, o la copia grande. */
+const bestImage = (name: string) => lesson.assets.get(`${ORIGINALS}${name}`) ?? lesson.assets.get(`Large/${name}`) ?? lesson.assets.get(name);
+
+let cropping = '';
+const { openCrop } = setupCrop({
+  onApply: async (blob, fit) => {
+    storeImage(cropping, await processImage(blob, { fit }));
+    changed();
+  },
+});
+function cropImage(name: string) {
+  const bytes = bestImage(name);
+  if (!bytes) return;
+  cropping = name;
+  hideToast();
+  void openCrop(bytes);
+}
+
+// Aviso que no frena nada: una imagen muy ancha se ve muy chica en Live.
+let toastTimer = 0;
+function hideToast() {
+  $('toast').hidden = true;
+  clearTimeout(toastTimer);
+}
+function suggestCrop(name: string) {
+  $('toast-text').textContent = t.wideImage;
+  $('toast').hidden = false;
+  $('toast-action').onclick = () => cropImage(name);
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(hideToast, 12000);
+}
+$('toast-close').addEventListener('click', hideToast);
+
+$('img-crop').addEventListener('click', () => {
+  const image = selectedImage();
+  if (image) cropImage(image.file);
+});
+const pickReplace = $<HTMLInputElement>('pick-replace');
+$('img-replace').addEventListener('click', () => pickReplace.click());
+pickReplace.addEventListener('change', async () => {
+  const file = imageFiles(pickReplace.files ?? undefined)[0];
+  pickReplace.value = '';
+  const image = selectedImage();
+  if (!file || !image) return;
+  let processed;
+  try {
+    processed = await processImage(file);
+  } catch {
+    return alert(t.imageError);
+  }
+  lesson.assets.set(`${ORIGINALS}${image.file}`, new Uint8Array(await file.arrayBuffer()));
+  storeImage(image.file, processed);
+  changed();
+  if (processed.width > WIDE) suggestCrop(image.file);
+});
+$('img-remove').addEventListener('click', () => {
+  editor.chain().focus().deleteSelection().run();
+  $('image-card').hidden = true;
+});
+
 /** Convierte las imágenes para Live, las guarda en la lección y las inserta en el texto. */
 async function addImages(files: File[], pos?: number) {
   const nodes = [];
+  let wide = '';
   for (const file of files) {
     let processed;
     try {
@@ -594,17 +704,20 @@ async function addImages(files: File[], pos?: number) {
       alert(t.imageError);
       continue;
     }
-    const used = new Set([...lesson.assets.keys()].filter((k) => !k.startsWith('Large/')));
+    const used = new Set([...lesson.assets.keys()].filter((k) => !k.startsWith('Large/') && !k.startsWith(ORIGINALS)));
     const name = imageName(file.name, used);
     lesson.assets.set(name, processed.small);
     if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
+    lesson.assets.set(`${ORIGINALS}${name}`, new Uint8Array(await file.arrayBuffer()));
     nodes.push({ type: 'image', attrs: { file: name } });
+    if (processed.width > WIDE) wide = name;
   }
   if (!nodes.length) return;
   const chain = editor.chain().focus();
   if (pos !== undefined) chain.insertContentAt(pos, [...nodes, { type: 'paragraph' }]).run();
   else chain.insertContent([...nodes, { type: 'paragraph' }]).run();
   changed();
+  if (wide) suggestCrop(wide);
 }
 
 // --- Abrir una lección y borrador ------------------------------------------------
