@@ -28,6 +28,7 @@
     "@tiptap/extensions": "3.31.4",
     "@tiptap/pm": "3.31.4",
     "cropperjs": "1.6.3",
-    "jszip": "3.10.2"
+    "jszip": "3.10.2",
+    "mammoth": "1.13.0"
   }
 }

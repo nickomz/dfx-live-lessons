@@ -15,10 +15,13 @@ import {
   LessonLink,
   LessonParagraph,
   Preserved,
+  PageBreak,
   PendingImage,
   PreservedInline,
   WholeWords,
 } from './editor/extensions';
+import { docxToHtml, isDocx } from './app/docx';
+import { DOMParser as SchemaParser, Fragment, Slice, type Node as PMNode } from '@tiptap/pm/model';
 import { setupLinks } from './app/links-dialog';
 import { cleanPastedHTML, emptyReport, type PasteReport } from './editor/paste';
 import { imageName, ORIGINALS, processImage } from './app/images';
@@ -58,6 +61,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <button class="menu-item" role="menuitem" id="new-lesson">${icon.plus}${t.newLesson}</button>
         <button class="menu-item" role="menuitem" id="open-zip">${icon.upload}${t.openZip}</button>
         <button class="menu-item desktop-only" role="menuitem" id="open-folder">${icon.folder}${t.openFolder}</button>
+        <button class="menu-item" role="menuitem" id="import-docx">${icon.upload}${t.importDocx}</button>
+        <input type="file" id="pick-docx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
         <span class="menu-hint desktop-only">${t.dropHint}</span>
         <span class="menu-hint touch-only">${t.dropHintTouch}</span>
         <input type="file" id="pick-zip" accept=".zip,application/zip" hidden>
@@ -165,6 +170,7 @@ const editor = new Editor({
     LessonLink,
     PreservedInline,
     PendingImage,
+    PageBreak,
     UndoRedo,
     Placeholder.configure({ placeholder: t.placeholder }),
   ],
@@ -175,16 +181,18 @@ const editor = new Editor({
     // Lo que se convirtió queda en lastPaste para cargar las imágenes y armar el resumen.
     transformPastedHTML: (html) => cleanPastedHTML(html, (lastPaste = emptyReport())),
     // Pegar una captura (Cmd+V) o soltar imágenes en el panel las agrega a la lección.
-    handlePaste: (_view, event) => {
+    handlePaste: (_view, event, slice) => {
       const images = imageFiles(event.clipboardData?.files);
-      if (!images.length) {
-        // Pegado común: el editor lo inserta; después se cargan las imágenes que traía.
-        const report = lastPaste;
-        lastPaste = null;
-        if (report) setTimeout(() => void afterPaste(report), 0);
-        return false;
+      if (images.length) {
+        void addImages(images);
+        return true;
       }
-      void addImages(images);
+      // HTML de Docs, Word o la web: se inserta acá (puede separarse en páginas) y después se
+      // cargan las imágenes que traía. Texto común: lo pega el editor.
+      const report = lastPaste;
+      lastPaste = null;
+      if (!report) return false;
+      void pasteDocument(slice, report);
       return true;
     },
     // Tocar una imagen pegada que no se pudo cargar abre el selector de archivos.
@@ -203,6 +211,12 @@ const editor = new Editor({
       return true;
     },
     handleDrop: (view, event) => {
+      const docx = [...(event.dataTransfer?.files ?? [])].find((f) => isDocx(f.name));
+      if (docx) {
+        event.preventDefault();
+        void importDocx(docx);
+        return true;
+      }
       const images = imageFiles(event.dataTransfer?.files);
       if (!images.length) return false;
       event.preventDefault();
@@ -738,16 +752,25 @@ async function addImages(files: File[], pos?: number) {
 let lastPaste: PasteReport | null = null;
 let pendingPick = '';
 
-/** Cambia la primera imagen pendiente con ese src por la imagen ya cargada. */
+/** Cambia la primera imagen pendiente con ese src (en esta página o en otra) por la imagen ya cargada. */
 function replacePending(src: string, name: string) {
   let at = -1;
   editor.state.doc.descendants((node, pos) => {
     if (at < 0 && node.type.name === 'pendingImage' && node.attrs.src === src) at = pos;
     return at < 0;
   });
-  if (at < 0) return;
-  const node = editor.state.schema.nodes.image!.create({ file: name });
-  editor.view.dispatch(editor.state.tr.replaceWith(at, at + 1, node));
+  if (at >= 0) {
+    const node = editor.state.schema.nodes.image!.create({ file: name });
+    editor.view.dispatch(editor.state.tr.replaceWith(at, at + 1, node));
+  } else {
+    for (const page of lesson.pages) {
+      const i = page.doc.content?.findIndex((n) => n.type === 'pendingImage' && n.attrs?.src === src) ?? -1;
+      if (i >= 0) {
+        page.doc.content![i] = { type: 'image', attrs: { file: name } };
+        break;
+      }
+    }
+  }
   changed();
 }
 
@@ -775,9 +798,170 @@ async function loadPendingImages(srcs: string[]): Promise<number> {
   return loaded;
 }
 
-async function afterPaste(report: PasteReport) {
-  if (report.images.length) await loadPendingImages(report.images);
+/** Un bloque de páginas de lo pegado o importado: lo que va hasta el próximo título o salto. */
+interface Segment {
+  title?: string;
+  nodes: PMNode[];
 }
+
+/** Separa en tramos por título principal y salto de página (las marcas no quedan en el texto). */
+function segments(nodes: readonly PMNode[]): Segment[] {
+  const out: Segment[] = [{ nodes: [] }];
+  for (const node of nodes) {
+    if (node.type.name === 'pageBreak') out.push({ nodes: [] });
+    else if (node.type.name === 'paragraph' && node.attrs.title) out.push({ title: String(node.attrs.title).trim() || node.textContent.trim(), nodes: [node] });
+    else out[out.length - 1]!.nodes.push(node);
+  }
+  return out.filter((s) => s.title || s.nodes.some((n) => n.content.size > 0 || n.isAtom));
+}
+
+/** Sin las líneas vacías del principio y del final. */
+function trimEmpty(nodes: PMNode[]): PMNode[] {
+  const empty = (n: PMNode) => n.type.name === 'paragraph' && n.content.size === 0;
+  let a = 0;
+  let b = nodes.length;
+  while (a < b && empty(nodes[a]!)) a++;
+  while (b > a && empty(nodes[b - 1]!)) b--;
+  return nodes.slice(a, b);
+}
+
+/** Pregunta si se separa en páginas. */
+function askSplit(n: number): Promise<boolean> {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'dlg';
+  dialog.innerHTML = `<form method="dialog" class="dlg-body"><div class="dlg-head"><h2></h2><p></p></div>
+    <div class="dlg-actions"><button class="ghost" value="no">${t.splitNo}</button><button class="primary wide" value="si">${t.splitYes}</button></div></form>`;
+  dialog.querySelector('h2')!.textContent = t.splitTitle(n);
+  dialog.querySelector('p')!.textContent = t.splitHelp;
+  document.body.append(dialog);
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      resolve(dialog.returnValue === 'si');
+    });
+    dialog.showModal();
+  });
+}
+
+/** Resumen de lo que se trajo y lo que se convirtió. */
+function showSummary(pages: number, report: PasteReport, loaded: number) {
+  const pending = report.images.length - loaded;
+  const lines = [t.summaryImported(t.summaryPages(pages), loaded ? t.summaryImages(loaded) : '')];
+  if (pending > 0) lines.push(t.summaryPending(pending));
+  if (report.tables) lines.push(t.summaryTables(report.tables));
+  if (report.removed.size) lines.push(t.summaryRemoved([...report.removed].map((r) => t.removedNames[r]).join(', ')));
+  const dialog = document.createElement('dialog');
+  dialog.className = 'dlg';
+  dialog.innerHTML = `<form method="dialog" class="dlg-body"><div class="dlg-head"><h2>${t.summaryTitle}</h2></div><div class="summary"></div><button class="primary wide">${t.understood}</button></form>`;
+  const box = dialog.querySelector('.summary')!;
+  for (const line of lines) {
+    const p = document.createElement('p');
+    p.textContent = line;
+    box.append(p);
+  }
+  document.body.append(dialog);
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.showModal();
+}
+
+/** Agrega páginas nuevas después de la actual con los tramos que siguen. */
+function addPagesAfterCurrent(rest: Segment[]) {
+  lesson.pages[current]!.doc = editor.getJSON();
+  const pages: EditorPage[] = [];
+  for (const seg of rest) {
+    // Cada página nueva necesita un identificador distinto de las que ya hay y de las anteriores.
+    const page = newPage([...lesson.pages, ...pages], seg.title || t.untitled);
+    const body = trimEmpty(seg.title ? seg.nodes.slice(1) : seg.nodes);
+    page.doc = { type: 'doc', content: body.length ? body.map((n) => n.toJSON()) : [{ type: 'paragraph' }] };
+    pages.push(page);
+  }
+  lesson.pages.splice(current + 1, 0, ...pages);
+  renderPanel();
+}
+
+/** Lo pegado desde Docs, Word o la web: si trae títulos o saltos de página, ofrece separarlo. */
+async function pasteDocument(slice: Slice, report: PasteReport) {
+  const nodes: PMNode[] = [];
+  slice.content.forEach((n) => nodes.push(n));
+  const segs = segments(nodes);
+  const split = segs.length > 1 && (await askSplit(segs.length));
+  const insert = (list: PMNode[]) => {
+    const tr = editor.state.tr;
+    if (list.length === nodes.length && !nodes.some((n) => n.type.name === 'pageBreak')) tr.replaceSelection(slice);
+    else tr.replaceSelection(new Slice(Fragment.from(list), 0, 0));
+    editor.view.dispatch(tr.scrollIntoView());
+  };
+  if (!split) {
+    insert(nodes.filter((n) => n.type.name !== 'pageBreak'));
+  } else {
+    // Lo que va antes del primer título queda acá; cada título arranca una página nueva. Si esta
+    // página está vacía, el primer título la usa a ella (con su nombre).
+    const here = !hasContent(lesson.pages[current]!) && !hasContent({ ...lesson.pages[current]!, doc: editor.getJSON() });
+    let [first, ...rest] = segs;
+    if (first!.title && !here) [first, rest] = [{ nodes: [] }, segs];
+    if (first!.title) {
+      lesson.pages[current]!.title = first!.title;
+      titleInput.value = first!.title;
+      first = { nodes: first!.nodes.slice(1) };
+    }
+    if (first!.nodes.length) insert(trimEmpty(first!.nodes));
+    addPagesAfterCurrent(rest);
+  }
+  changed();
+  const loaded = report.images.length ? await loadPendingImages(report.images) : 0;
+  const notable = split || report.images.length || report.tables || report.removed.size;
+  if (notable) showSummary(split ? segs.length : 1, report, loaded);
+}
+
+/** Importa un .docx como lección nueva (una página por título si se elige separar). */
+async function importDocx(file: File) {
+  closeLessonsMenu();
+  if (lesson.pages.some(hasContent) && !confirm(t.newLessonConfirm)) return;
+  let html: string;
+  try {
+    html = await docxToHtml(await file.arrayBuffer());
+  } catch {
+    return alert(t.docxError);
+  }
+  const report = emptyReport();
+  const box = document.createElement('div');
+  box.innerHTML = cleanPastedHTML(html, report);
+  const nodes: PMNode[] = [];
+  SchemaParser.fromSchema(editor.schema).parse(box).content.forEach((n) => nodes.push(n));
+  const segs = segments(nodes);
+  const split = segs.length > 1 && (await askSplit(segs.length));
+  const name = file.name.replace(/\.docx$/i, '');
+  const next = newLesson(t.firstPage);
+  if (split) {
+    next.pages = [];
+    segs.forEach((seg, i) => {
+      const page = newPage(next.pages, seg.title || (i === 0 ? name : t.untitled));
+      const body = trimEmpty(seg.title ? seg.nodes.slice(1) : seg.nodes);
+      page.doc = { type: 'doc', content: body.length ? body.map((n) => n.toJSON()) : [{ type: 'paragraph' }] };
+      next.pages.push(page);
+    });
+  } else {
+    const page = next.pages[0]!;
+    page.title = segs[0]?.title || name;
+    const body = trimEmpty(nodes.filter((n) => n.type.name !== 'pageBreak'));
+    page.doc = { type: 'doc', content: body.length ? body.map((n) => n.toJSON()) : [{ type: 'paragraph' }] };
+  }
+  loadLesson(next);
+  changed();
+  const loaded = report.images.length ? await loadPendingImages(report.images) : 0;
+  showSummary(next.pages.length, report, loaded);
+}
+
+const pickDocx = $<HTMLInputElement>('pick-docx');
+$('import-docx').addEventListener('click', () => {
+  closeLessonsMenu();
+  pickDocx.click();
+});
+pickDocx.addEventListener('change', () => {
+  const file = pickDocx.files?.[0];
+  pickDocx.value = '';
+  if (file) void importDocx(file);
+});
 
 const pickPending = $<HTMLInputElement>('pick-pending');
 pickPending.addEventListener('change', async () => {
@@ -916,6 +1100,7 @@ document.addEventListener('drop', async (e) => {
   e.preventDefault();
   const entries = [...e.dataTransfer!.items].map((i) => i.webkitGetAsEntry?.()).filter((x): x is FileSystemEntry => !!x);
   const files = [...e.dataTransfer!.files];
+  if (entries.length === 1 && entries[0]!.isFile && isDocx(entries[0]!.name)) return importDocx(files[0]!);
   if (entries.length === 1 && entries[0]!.isFile && /\.zip$/i.test(entries[0]!.name)) {
     return openZip(new Uint8Array(await files[0]!.arrayBuffer()));
   }

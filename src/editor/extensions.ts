@@ -28,6 +28,8 @@ export const LessonParagraph = Paragraph.extend({
         renderHTML: (attrs) => (attrs.bullet && attrs.level > 1 ? { 'data-level': String(attrs.level) } : {}),
       },
       raw: { default: null, keepOnSplit: false, rendered: false },
+      // Título principal de un documento pegado o importado: marca dónde puede empezar una página.
+      title: { default: null, keepOnSplit: false, rendered: false, parseHTML: (el) => el.getAttribute('data-title') },
     };
   },
 
@@ -160,6 +162,19 @@ export const LessonImage = Node.create<LessonImageOptions>({
 });
 
 /** Link de Live ($Link texto <destino>): a otra página, a una web, a un email o a otro Set. */
+/** Salto de página de un documento pegado o importado. Solo existe mientras se separa en páginas. */
+export const PageBreak = Node.create({
+  name: 'pageBreak',
+  group: 'block',
+  atom: true,
+  parseHTML() {
+    return [{ tag: 'p[data-page-break]', priority: 100 }];
+  },
+  renderHTML() {
+    return ['hr', { class: 'lv-page-break' }];
+  },
+});
+
 /**
  * Imagen pegada que todavía no se cargó (Docs pega un link a Google, no la imagen). La app
  * intenta bajarla; si no puede, queda este recuadro para elegirla a mano. No se exporta.

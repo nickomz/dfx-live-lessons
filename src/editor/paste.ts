@@ -29,6 +29,7 @@ export interface PasteReport {
 export const emptyReport = (): PasteReport => ({ images: [], tables: 0, pageBreaks: 0, titles: [], removed: new Set() });
 
 const isPageBreak = (el: Element) => {
+  if (el.classList.contains('page-break')) return true;
   const style = (el.getAttribute('style') ?? '').replace(/\s/g, '').toLowerCase();
   return /page-break-(before|after):always|break-(before|after):page/.test(style);
 };
@@ -54,9 +55,11 @@ function headings(root: HTMLElement, report: PasteReport) {
     const strong = document.createElement('strong');
     strong.append(...h.childNodes);
     if (main) {
+      // El texto original queda para el nombre de la página, si se separa.
+      const original = (strong.textContent ?? '').replace(/\s+/g, ' ').trim();
       for (const t of textNodes(strong)) t.data = t.data.toUpperCase();
-      report.titles.push((strong.textContent ?? '').trim());
-      p.setAttribute('data-title', 'true');
+      report.titles.push(original);
+      p.setAttribute('data-title', original || ' ');
     }
     p.append(strong);
     h.replaceWith(p);

@@ -94,7 +94,7 @@ function sameInlines(a: Inline[], b: Inline[]): boolean {
 
 export function contentToBlocks(content: JSONContent[] = []): Block[] {
   // Las imágenes pegadas que no se cargaron no van al archivo.
-  return content.filter((node) => node.type !== 'pendingImage').map((node): Block => {
+  return content.filter((node) => node.type !== 'pendingImage' && node.type !== 'pageBreak').map((node): Block => {
     if (node.type === 'divider') {
       const raw = node.attrs?.raw;
       return typeof raw === 'string' ? { type: 'divider', raw } : { type: 'divider' };
