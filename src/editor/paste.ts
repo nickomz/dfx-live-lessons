@@ -167,6 +167,21 @@ function wordLists(root: HTMLElement) {
   }
 }
 
+const BLOCKS = new Set(['P', 'DIV', 'UL', 'OL', 'LI', 'TABLE', 'HR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE']);
+
+/**
+ * Docs manda cada línea vacía entre párrafos como un <br> suelto, afuera de los párrafos
+ * (<p>uno</p><br><p>dos</p>): el editor lo descartaría. Se convierte en un párrafo vacío.
+ */
+function looseBreaks(root: HTMLElement) {
+  for (const br of [...root.querySelectorAll('br')]) {
+    const parent = br.parentElement;
+    if (!parent || BLOCKS.has(parent.tagName)) continue;
+    const loose = parent === root || [...parent.children].some((c) => BLOCKS.has(c.tagName));
+    if (loose) br.replaceWith(document.createElement('p'));
+  }
+}
+
 /** <p>uno<br>dos</p> → <p>uno</p><p>dos</p>. */
 function splitBreaks(root: HTMLElement) {
   for (const block of [...root.querySelectorAll('p,div')]) {
@@ -244,6 +259,7 @@ export function cleanPastedHTML(html: string, report: PasteReport = emptyReport(
   headings(body, report);
   tables(body, report);
   lists(body);
+  looseBreaks(body);
   splitBreaks(body);
   images(body, report);
   collapseEmpty(body);
