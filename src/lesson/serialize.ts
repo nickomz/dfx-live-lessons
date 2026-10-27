@@ -4,6 +4,7 @@
 // incluidos). Si cambió, escribe UTF-8 sin BOM con saltos LF: las líneas que nadie
 // tocó salen con su texto original y las editadas, en el formato canónico.
 
+import { BULLET_PREFIX } from './bullets';
 import { serializeInlines } from './inline';
 import { decode } from './parse';
 import type { Block, Lesson } from './model';
@@ -14,7 +15,7 @@ export function serializeBlock(block: Block): string {
     case 'text':
       return serializeInlines(block.inlines);
     case 'bullet':
-      return `-> ${serializeInlines(block.inlines)}`;
+      return `${BULLET_PREFIX[block.level ?? 1]}${serializeInlines(block.inlines)}`;
     case 'image':
       return block.alt === undefined ? block.file : `${block.file}[alt="${block.alt}"]`;
     case 'divider':

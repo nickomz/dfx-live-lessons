@@ -3,6 +3,7 @@
 // Acepta UTF-8 con o sin BOM y saltos LF o CRLF (Live lee las dos cosas). Cada línea
 // se convierte en un bloque que guarda su texto original en `raw`.
 
+import { readBullet } from './bullets';
 import { IMAGE_FILE, parseInlines } from './inline';
 import type { Block, Lesson, Page } from './model';
 
@@ -30,7 +31,11 @@ function parseLine(raw: string, insideConditional: boolean): Block {
   if (/^Divider\.tiff?$/i.test(line)) return { type: 'divider', raw };
   const img = IMAGE_FILE.exec(line);
   if (img) return img[2] === undefined ? { type: 'image', file: img[1]!, raw } : { type: 'image', file: img[1]!, alt: img[2], raw };
-  if (raw.startsWith('-> ')) return { type: 'bullet', inlines: parseInlines(raw.slice(3)), raw };
+  const bullet = readBullet(raw);
+  if (bullet) {
+    const inlines = parseInlines(bullet.rest);
+    return bullet.level === 1 ? { type: 'bullet', inlines, raw } : { type: 'bullet', inlines, level: bullet.level, raw };
+  }
   return { type: 'text', inlines: parseInlines(raw), raw };
 }
 

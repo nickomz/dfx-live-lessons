@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseLesson, parseInlines, serializeBlock, serializeLesson, type Block, type Inline } from '../src/lesson';
+import { parseLesson, parseInlines, readBullet, serializeBlock, serializeLesson, type Block, type Inline } from '../src/lesson';
 
 function lessonDirs(): string[] {
   const dirs = [join(homedir(), 'Music/Ableton/Factory Packs'), join(homedir(), 'Music/Ableton/User Library')];
@@ -62,7 +62,7 @@ describe.skipIf(files.length === 0)(`lecciones instaladas (${files.length} archi
       for (const page of parseLesson(new Uint8Array(readFileSync(f))).pages) {
         for (const block of page.blocks) {
           if (block.type !== 'text' && block.type !== 'bullet') continue;
-          const read = (line: string) => (block.type === 'bullet' ? parseInlines(line.slice(3)) : parseInlines(line));
+          const read = (line: string) => parseInlines(block.type === 'bullet' ? readBullet(line)!.rest : line);
           const canonical = serializeBlock(withoutRaw(block));
           const again = serializeBlock({ ...withoutRaw(block), inlines: read(canonical) } as typeof block);
           const sameText = visible(merge(read(canonical))) === visible(merge(block.inlines));

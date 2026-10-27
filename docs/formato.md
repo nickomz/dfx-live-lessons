@@ -57,6 +57,9 @@ Probado el 24/10/2026 en Live 12.4.7 (lecciones de prueba en [`docs/pruebas/marc
 | Signo adentro del formato | `/cursiva./` · `*negrita.*` | Funciona (el signo sale con formato) |
 | Fin de línea | `Hola /cursiva/` | Funciona |
 | Negrita y cursiva juntas | `*/las dos/*` · `/*las dos*/` | **No existe**: sale solo el de afuera, con el otro marcador literal |
+| Cursiva adentro de negrita | `*negrita con /cursiva adentro/ y sigue*` | Funciona: la parte del medio sale en cursiva (sin negrita) y después vuelve la negrita |
+| Asteriscos con espacio alrededor | `* /x/ *` | Los asteriscos se ven literales; la cursiva funciona |
+| Tachado y subrayado | `~~x~~` · `_x_` | No existen: se ven literales |
 | Dos tramos pegados | `*uno**dos*` | Una sola negrita con `**` literal |
 | Marcador suelto que abre | `Ver /ruta` · `Ver *nota` | **El formato sigue hasta el final de la página** |
 | Marcador suelto que cierra | `pads/ texturas` · `nota* importante` | El marcador desaparece |
@@ -64,13 +67,35 @@ Probado el 24/10/2026 en Live 12.4.7 (lecciones de prueba en [`docs/pruebas/marc
 | Barra de división (U+2215) | `Ver ∕ruta` | Se ve otro carácter, más ancho |
 | Asterisco matemático (U+2217) | `Ver ∗nota` | No se ve: Live no tiene ese carácter |
 
-La regla: un `*` o una `/` **abre** formato si está al principio de la línea o después de un espacio, y lo sigue algo que no es espacio. **Cierra** si está pegado a lo anterior y lo sigue un espacio o el fin de la línea. El formato abierto sigue hasta que cierra o hasta el final de la página. En las lecciones instaladas de Live, Ableton usa la regla bien 1740 veces y la rompe 3 (`*CV 2*.`, por ejemplo).
+La regla: un `*` o una `/` **abre** formato si está al principio de la línea o después de un espacio, y lo sigue algo que no es espacio. **Cierra** si está pegado a lo anterior y lo sigue un espacio o el fin de la línea. Los formatos se apilan: si adentro de una negrita abre una cursiva, al cerrarla vuelve la negrita. El formato abierto sigue hasta que cierra o hasta el final de la página. En las lecciones instaladas de Live, Ableton usa la regla bien 1740 veces y la rompe 3 (`*CV 2*.`, por ejemplo).
 
 Lo que hace la app:
 - Escribe los marcadores al borde de palabras enteras: si se marcó una palabra con un signo pegado, el signo entra en el formato (`/cursiva./`); si se marcó media palabra, el formato toma la palabra entera. El editor muestra lo mismo.
 - Negrita y cursiva no se combinan: poner una saca la otra.
 - Un `*` o una `/` que el docente escribió como texto y que Live tomaría como marcador lleva un espacio de ancho cero al lado (antes si abriría, después si cerraría). Al leer la lección, la app los saca.
 - Una palabra pegada a un link no lleva formato (el marcador no tendría un espacio al lado).
+
+## Sangría, sublistas, espacios y símbolos
+
+Probado el 26/10/2026 en Live 12.4.7 y 11.3 (mismo resultado). Capturas: [`live12-fidelidad-sangria.jpg`](capturas/live12-fidelidad-sangria.jpg), [`live12-fidelidad-espacios.jpg`](capturas/live12-fidelidad-espacios.jpg), [`live12-fidelidad-simbolos.jpg`](capturas/live12-fidelidad-simbolos.jpg), [`live12-fidelidad-combinaciones.jpg`](capturas/live12-fidelidad-combinaciones.jpg), [`live11-fidelidad-clave.jpg`](capturas/live11-fidelidad-clave.jpg).
+
+| Caso | Resultado |
+|---|---|
+| Espacios comunes o tab al principio de la línea | Se descartan |
+| `  -> x` (espacios comunes y flecha) | Sigue siendo viñeta de nivel 1 |
+| Tab o espacio duro (U+00A0) y `-> ` | La flecha se ve literal |
+| Dos espacios anchos (U+2003) y `• ` | Sangría: se ve como viñeta de nivel 2 |
+| Cuatro espacios anchos y `◦ ` | Sangría: nivel 3 |
+| Cuatro espacios duros y `• ` | También sangra, menos |
+| Varias líneas vacías seguidas | Se respetan (más espacio) |
+| Varios espacios dentro de una línea | Se ven |
+| Emojis (🎛️🎹🥁🔊✅❌👉🎧) | Se ven, en color |
+| ★☆●○■□▶◀→←↑↓①②③♩♪♫♭♮©®™°±×÷≈≠≤≥½¼¾€… | Se ven |
+| ✗ | **No se ve**: la fuente no lo tiene (✕ y × sí) |
+| ♯ | Se ve parecido a # |
+| Tablas hechas con │ o espacios | No alinean: la fuente es proporcional |
+
+Lo que hace la app: las sublistas se escriben con la sangría que Live respeta. Nivel 1: `-> `; nivel 2: dos espacios anchos y `• `; nivel 3: cuatro espacios anchos y `◦ `. Al leer una lección, esas tres formas (y `-> ` con espacios comunes antes) se leen como viñetas de su nivel.
 
 ## Imágenes
 
@@ -130,6 +155,11 @@ Lo que el editor tiene que imitar (ver capturas):
 | [comparacion-panel-tramo7.png](capturas/comparacion-panel-tramo7.png) | El panel del editor (izquierda) al lado de Live 12: peso del texto, viñeta cuadrada y divisor |
 | [live12-15-verificacion-final.jpg](capturas/live12-15-verificacion-final.jpg) | Verificación final: lección armada en la app con imagen y los cuatro links (Live 12) |
 | [live11-06-verificacion-final.jpg](capturas/live11-06-verificacion-final.jpg) | La misma lección en Live 11 |
+| [live12-fidelidad-combinaciones.jpg](capturas/live12-fidelidad-combinaciones.jpg) | Negrita, cursiva y sus combinaciones (Live 12) |
+| [live12-fidelidad-sangria.jpg](capturas/live12-fidelidad-sangria.jpg) | Sangría y sublistas con espacios anchos (Live 12) |
+| [live12-fidelidad-espacios.jpg](capturas/live12-fidelidad-espacios.jpg) | Líneas vacías y espacios (Live 12) |
+| [live12-fidelidad-simbolos.jpg](capturas/live12-fidelidad-simbolos.jpg) | Emojis y símbolos (Live 12) |
+| [live11-fidelidad-clave.jpg](capturas/live11-fidelidad-clave.jpg) | Los casos clave en Live 11 |
 
 ## Páginas vacías
 

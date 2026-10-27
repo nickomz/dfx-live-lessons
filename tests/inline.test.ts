@@ -39,6 +39,20 @@ describe('negrita y cursiva', () => {
     ]);
   });
 
+  it('cursiva adentro de negrita: se ve en cursiva y después vuelve la negrita', () => {
+    expect(parseEmphasis('Mezcla: *negrita con /cursiva adentro/ y sigue* fin')).toEqual([
+      { type: 'text', text: 'Mezcla: ' },
+      { type: 'text', text: 'negrita con ', bold: true },
+      { type: 'text', text: 'cursiva adentro', italic: true },
+      { type: 'text', text: ' y sigue', bold: true },
+      { type: 'text', text: ' fin' },
+    ]);
+  });
+
+  it('asteriscos con espacio alrededor quedan literales', () => {
+    expect(parseEmphasis('* /x/ *')).toEqual([{ type: 'text', text: '* ' }, { type: 'text', text: 'x', italic: true }, { type: 'text', text: ' *' }]);
+  });
+
   it('un marcador que cierra sin haber abierto desaparece', () => {
     expect(parseEmphasis('Hola pads/ texturas')).toEqual([{ type: 'text', text: 'Hola pads' }, { type: 'text', text: ' texturas' }]);
   });

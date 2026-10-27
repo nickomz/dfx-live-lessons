@@ -25,29 +25,32 @@ const opens = (s: string, i: number) => (i === 0 || isSpace(s[i - 1])) && s[i + 
 const closes = (s: string, i: number) => i > 0 && !isSpace(s[i - 1]) && (s[i + 1] === undefined || isSpace(s[i + 1]));
 
 /**
- * Parte un texto sin links en tramos con negrita o cursiva, como lo muestra Live. Si un
- * marcador abre y no cierra, en Live el formato sigue hasta el fin de la página; acá llega
- * hasta el fin del texto.
+ * Parte un texto sin links en tramos con negrita o cursiva, como lo muestra Live. Los
+ * formatos se apilan: en "*negrita /cursiva/ sigue*" la cursiva se ve sin negrita y después
+ * vuelve la negrita (nunca las dos juntas). Si un marcador abre y no cierra, en Live el
+ * formato sigue hasta el fin de la página; acá llega hasta el fin del texto.
  */
 export function parseEmphasis(s: string): TextRun[] {
   const runs: TextRun[] = [];
-  let style: '*' | '/' | null = null;
+  const stack: ('*' | '/')[] = [];
   let text = '';
   const flush = () => {
     // Los espacios de ancho cero que puso la app al lado de un marcador literal no son texto.
     const clean = text.replace(/\u200b(?=[*/])|(?<=[*/])\u200b/g, '');
+    const style = stack[stack.length - 1];
     if (clean) runs.push(run(clean, style === '*', style === '/'));
     text = '';
   };
   for (let i = 0; i < s.length; i++) {
     const ch = s[i]!;
-    if (isMarker(ch) && style !== ch && opens(s, i)) {
+    if (isMarker(ch) && !stack.includes(ch as '*' | '/') && opens(s, i)) {
       flush();
-      style = ch as '*' | '/';
+      stack.push(ch as '*' | '/');
     } else if (isMarker(ch) && closes(s, i)) {
-      // Cierra el formato abierto; si no había ninguno con este marcador, Live no lo muestra.
+      // Cierra ese formato (y lo que se abrió adentro); si no estaba abierto, Live no lo muestra.
       flush();
-      if (style === ch) style = null;
+      const at = stack.lastIndexOf(ch as '*' | '/');
+      if (at >= 0) stack.length = at;
     } else {
       text += ch;
     }

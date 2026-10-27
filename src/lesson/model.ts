@@ -34,7 +34,8 @@ export interface RawLinkInline {
 
 export type Block =
   | { type: 'text'; inlines: Inline[]; raw?: string }
-  | { type: 'bullet'; inlines: Inline[]; raw?: string }
+  /** Viñeta; `level` 2 y 3 son sublistas (sangría con espacios anchos, docs/formato.md). */
+  | { type: 'bullet'; inlines: Inline[]; level?: 2 | 3; raw?: string }
   | { type: 'image'; file: string; alt?: string; raw?: string }
   | { type: 'divider'; raw?: string }
   | { type: 'blank'; raw?: string }

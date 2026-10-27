@@ -5,7 +5,7 @@
 // soportados). Los nodos guardan `raw` para que lo que no se tocó se escriba igual.
 
 import type { JSONContent } from '@tiptap/core';
-import { parseInlines, serializeBlock, serializeInlines, type Block, type Inline, type TextRun } from '../lesson';
+import { parseInlines, readBullet, serializeBlock, serializeInlines, type Block, type Inline, type TextRun } from '../lesson';
 
 function runToNode(run: TextRun, target?: string): JSONContent {
   const marks: JSONContent['marks'] = [];
@@ -73,7 +73,7 @@ export function blocksToContent(blocks: Block[]): JSONContent[] {
       case 'bullet':
         return {
           type: 'paragraph',
-          attrs: { bullet: block.type === 'bullet', raw: block.raw ?? null },
+          attrs: { bullet: block.type === 'bullet', level: block.type === 'bullet' ? (block.level ?? 1) : 1, raw: block.raw ?? null },
           content: inlinesToNodes(block.inlines),
         };
       case 'blank':
@@ -114,14 +114,15 @@ export function contentToBlocks(content: JSONContent[] = []): Block[] {
     if (!bullet && inlines.length === 0) {
       return raw !== undefined && raw.trim() === '' ? { type: 'blank', raw } : { type: 'blank' };
     }
-    const type = bullet ? 'bullet' : 'text';
+    const level = bullet ? (Number(node.attrs?.level) || 1) : 1;
+    const block: Block =
+      bullet && level > 1 ? { type: 'bullet', inlines, level: level as 2 | 3 } : { type: bullet ? 'bullet' : 'text', inlines };
     // Conserva la línea original si el contenido no cambió.
     if (raw !== undefined) {
-      const wasBullet = raw.startsWith('-> ');
-      if (wasBullet === bullet && sameInlines(parseInlines(bullet ? raw.slice(3) : raw), inlines)) {
-        return { type, inlines, raw };
-      }
+      const was = readBullet(raw);
+      const sameKind = bullet ? was?.level === level : !was;
+      if (sameKind && sameInlines(parseInlines(was ? was.rest : raw), inlines)) return { ...block, raw };
     }
-    return { type, inlines };
+    return block;
   });
 }

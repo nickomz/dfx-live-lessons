@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseLesson, serializeLesson, serializeText, type Block } from '../src/lesson';
+import { parseLesson, serializeBlock, serializeLesson, serializeText, type Block } from '../src/lesson';
 
 const root = join(import.meta.dirname, '..');
 const read = (path: string) => new Uint8Array(readFileSync(join(root, path)));
@@ -90,5 +90,31 @@ describe('round-trip', () => {
       ],
     });
     expect(serializeText(lesson)).toBe('$Page Uno\n$TargetName Uno\n\n$Page Dos\n$TargetName Dos\n-> Paso\nimg.png\nDivider.tif');
+  });
+});
+
+describe('sublistas', () => {
+  const EM = '\u2003';
+  const text = (s: string) => [{ type: 'text' as const, text: s }];
+
+  it('lee los tres niveles y vuelve a escribirlos igual', () => {
+    const src = `$Page Uno\n-> Uno\n  -> Uno con espacios\n${EM}${EM}• Dos\n${EM}${EM}${EM}${EM}◦ Tres\n`;
+    const lesson = parseLesson(src);
+    expect(lesson.pages[0]!.blocks.slice(0, 4).map((b) => (b.type === 'bullet' ? [b.level ?? 1, b.inlines] : b.type))).toEqual([
+      [1, text('Uno')],
+      [1, text('Uno con espacios')],
+      [2, text('Dos')],
+      [3, text('Tres')],
+    ]);
+    expect(serializeText(lesson)).toBe(src);
+  });
+
+  it('una viñeta nueva de nivel 2 o 3 se escribe con la sangría de espacios anchos', () => {
+    expect(serializeBlock({ type: 'bullet', level: 2, inlines: text('Dos') })).toBe(`${EM}${EM}• Dos`);
+    expect(serializeBlock({ type: 'bullet', level: 3, inlines: text('Tres') })).toBe(`${EM}${EM}${EM}${EM}◦ Tres`);
+  });
+
+  it('un tab o un espacio duro antes de la flecha no es viñeta (en Live se ve la flecha)', () => {
+    expect(parseLesson('$Page A\n\t-> x\n\u00a0-> y').pages[0]!.blocks.map((b) => b.type)).toEqual(['text', 'text']);
   });
 });
