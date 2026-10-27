@@ -175,6 +175,11 @@ const BLOCKS = new Set(['P', 'DIV', 'UL', 'OL', 'LI', 'TABLE', 'HR', 'H1', 'H2',
  */
 function looseBreaks(root: HTMLElement) {
   for (const br of [...root.querySelectorAll('br')]) {
+    // El salto que Chrome agrega al final de lo copiado no es una línea del documento.
+    if (br.classList.contains('Apple-interchange-newline')) {
+      br.remove();
+      continue;
+    }
     const parent = br.parentElement;
     if (!parent || BLOCKS.has(parent.tagName)) continue;
     const loose = parent === root || [...parent.children].some((c) => BLOCKS.has(c.tagName));
@@ -235,22 +240,30 @@ function noteRemoved(root: HTMLElement, report: PasteReport) {
   }
 }
 
-/** Vacíos: más de dos párrafos vacíos seguidos se juntan en dos. */
+/** Vacíos: más de dos párrafos vacíos seguidos se juntan en dos (un divisor o una lista cortan la cuenta). */
 function collapseEmpty(root: HTMLElement) {
   let run = 0;
-  for (const el of [...root.querySelectorAll('p')]) {
-    const empty = !el.hasAttribute('data-pending-image') && !el.hasAttribute('data-page-break') && !(el.textContent ?? '').trim();
+  for (const el of [...root.querySelectorAll('p, hr, ul, ol, table, h1, h2, h3, h4, h5, h6')]) {
+    const empty =
+      el.tagName === 'P' && !el.hasAttribute('data-pending-image') && !el.hasAttribute('data-page-break') && !(el.textContent ?? '').trim();
     run = empty ? run + 1 : 0;
     if (run > 2) el.remove();
   }
 }
+
+/**
+ * Docs manda la línea horizontal adentro de su propio párrafo (<p><hr></p>), y el navegador lo
+ * parte en "vacío, línea, vacío". En Docs se ve la línea y el renglón de ese párrafo: queda el
+ * divisor y una línea vacía después.
+ */
+const ruleParagraphs = (html: string) => html.replace(/<p\b[^>]*>\s*(<hr\b[^>]*>)\s*<\/p>/gi, '$1<p></p>');
 
 function replaceChars(root: HTMLElement) {
   for (const t of textNodes(root)) t.data = t.data.replace(/✗/g, '✕').replace(/ /g, ' ');
 }
 
 export function cleanPastedHTML(html: string, report: PasteReport = emptyReport()): string {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const doc = new DOMParser().parseFromString(ruleParagraphs(html), 'text/html');
   const body = doc.body;
   for (const el of [...body.querySelectorAll('style,script,meta,link,title,svg,video,audio,iframe,source')]) el.remove();
   noteRemoved(body, report);
