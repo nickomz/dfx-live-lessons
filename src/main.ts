@@ -909,7 +909,8 @@ async function pasteDocument(slice: Slice, report: PasteReport) {
   }
   changed();
   const loaded = report.images.length ? await loadPendingImages(report.images) : 0;
-  const notable = split || report.images.length || report.tables || report.removed.size;
+  // El resumen solo aparece si hay algo que contar: imágenes que se cargaron no hacen falta.
+  const notable = split || report.tables || report.removed.size || loaded < report.images.length;
   if (notable) showSummary(split ? segs.length : 1, report, loaded);
 }
 
