@@ -15,11 +15,12 @@ import {
   LessonLink,
   LessonParagraph,
   Preserved,
+  PendingImage,
   PreservedInline,
   WholeWords,
 } from './editor/extensions';
 import { setupLinks } from './app/links-dialog';
-import { cleanPastedHTML } from './editor/paste';
+import { cleanPastedHTML, emptyReport, type PasteReport } from './editor/paste';
 import { imageName, ORIGINALS, processImage } from './app/images';
 import { setupCrop } from './app/crop';
 import { NodeSelection } from '@tiptap/pm/state';
@@ -107,6 +108,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <button id="img-remove">${t.imageRemove}</button>
         </div>
         <input type="file" id="pick-replace" accept="image/*" hidden>
+        <input type="file" id="pick-pending" accept="image/*" hidden>
       </div>
       <button class="inserter" id="inserter" aria-label="${t.insert}" aria-haspopup="menu" aria-expanded="false" hidden>${icon.plus}</button>
       <div class="popover insert-menu" id="insert-menu" role="menu" hidden>
@@ -162,6 +164,7 @@ const editor = new Editor({
     LessonImage.configure({ resolve: (file) => imageUrl(file) }),
     LessonLink,
     PreservedInline,
+    PendingImage,
     UndoRedo,
     Placeholder.configure({ placeholder: t.placeholder }),
   ],
@@ -169,12 +172,26 @@ const editor = new Editor({
   editorProps: {
     attributes: { class: 'lv-editor', spellcheck: 'true' },
     // Lo pegado desde Docs, Notion o la web se lleva a lo que Live muestra.
-    transformPastedHTML: (html) => cleanPastedHTML(html),
+    // Lo que se convirtió queda en lastPaste para cargar las imágenes y armar el resumen.
+    transformPastedHTML: (html) => cleanPastedHTML(html, (lastPaste = emptyReport())),
     // Pegar una captura (Cmd+V) o soltar imágenes en el panel las agrega a la lección.
     handlePaste: (_view, event) => {
       const images = imageFiles(event.clipboardData?.files);
-      if (!images.length) return false;
+      if (!images.length) {
+        // Pegado común: el editor lo inserta; después se cargan las imágenes que traía.
+        const report = lastPaste;
+        lastPaste = null;
+        if (report) setTimeout(() => void afterPaste(report), 0);
+        return false;
+      }
       void addImages(images);
+      return true;
+    },
+    // Tocar una imagen pegada que no se pudo cargar abre el selector de archivos.
+    handleClickOn: (_view, _pos, node) => {
+      if (node.type.name !== 'pendingImage') return false;
+      pendingPick = String(node.attrs.src);
+      $<HTMLInputElement>('pick-pending').click();
       return true;
     },
     // Cmd+clic (Mac) o Ctrl+clic (Windows) sobre un link lo abre directo.
@@ -646,7 +663,7 @@ const { openCrop } = setupCrop();
  * Abre la ventana de ajuste para una imagen que se está agregando y devuelve sus versiones
  * para Live: tal cual ("Usar así") o recortada.
  */
-async function adjustNewImage(file: File, bytes: Uint8Array) {
+async function adjustNewImage(file: Blob, bytes: Uint8Array) {
   const result = await openCrop(bytes, { insert: true });
   return result?.kind === 'crop' ? processImage(result.blob, { fit: result.fit }) : processImage(file);
 }
@@ -683,25 +700,31 @@ $('img-remove').addEventListener('click', () => {
   $('image-card').hidden = true;
 });
 
+/** Abre la ventana de ajuste para una imagen nueva y la guarda en la lección. Devuelve su nombre. */
+async function storeNewImage(file: Blob, fileName?: string): Promise<string | null> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let processed;
+  try {
+    processed = await adjustNewImage(file, bytes);
+  } catch {
+    alert(t.imageError);
+    return null;
+  }
+  const used = new Set([...lesson.assets.keys()].filter((k) => !k.startsWith('Large/') && !k.startsWith(ORIGINALS)));
+  const name = imageName(fileName, used);
+  lesson.assets.set(name, processed.small);
+  if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
+  lesson.assets.set(`${ORIGINALS}${name}`, bytes);
+  return name;
+}
+
 /** Convierte las imágenes para Live, las guarda en la lección y las inserta en el texto. */
 async function addImages(files: File[], pos?: number) {
   const nodes = [];
   // Una ventana de ajuste por imagen, en orden.
   for (const file of files) {
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let processed;
-    try {
-      processed = await adjustNewImage(file, bytes);
-    } catch {
-      alert(t.imageError);
-      continue;
-    }
-    const used = new Set([...lesson.assets.keys()].filter((k) => !k.startsWith('Large/') && !k.startsWith(ORIGINALS)));
-    const name = imageName(file.name, used);
-    lesson.assets.set(name, processed.small);
-    if (processed.large) lesson.assets.set(`Large/${name}`, processed.large);
-    lesson.assets.set(`${ORIGINALS}${name}`, bytes);
-    nodes.push({ type: 'image', attrs: { file: name } });
+    const name = await storeNewImage(file, file.name);
+    if (name) nodes.push({ type: 'image', attrs: { file: name } });
   }
   if (!nodes.length) return;
   const chain = editor.chain().focus();
@@ -709,6 +732,61 @@ async function addImages(files: File[], pos?: number) {
   else chain.insertContent([...nodes, { type: 'paragraph' }]).run();
   changed();
 }
+
+// --- Pegar desde Docs, Word o la web ----------------------------------------------
+
+let lastPaste: PasteReport | null = null;
+let pendingPick = '';
+
+/** Cambia la primera imagen pendiente con ese src por la imagen ya cargada. */
+function replacePending(src: string, name: string) {
+  let at = -1;
+  editor.state.doc.descendants((node, pos) => {
+    if (at < 0 && node.type.name === 'pendingImage' && node.attrs.src === src) at = pos;
+    return at < 0;
+  });
+  if (at < 0) return;
+  const node = editor.state.schema.nodes.image!.create({ file: name });
+  editor.view.dispatch(editor.state.tr.replaceWith(at, at + 1, node));
+  changed();
+}
+
+/**
+ * Baja las imágenes que trajo lo pegado (Docs pega links a Google) y abre la ventana de
+ * ajuste para cada una. Las que no se pueden bajar quedan como recuadro para elegirlas.
+ */
+async function loadPendingImages(srcs: string[]): Promise<number> {
+  let loaded = 0;
+  for (const src of srcs) {
+    let blob: Blob | null = null;
+    try {
+      const res = await fetch(src);
+      const b = res.ok ? await res.blob() : null;
+      if (b?.type.startsWith('image/')) blob = b;
+    } catch {
+      // Sin permiso para bajarla (CORS) o sin conexión: queda el recuadro.
+    }
+    if (!blob) continue;
+    const name = await storeNewImage(blob);
+    if (!name) continue;
+    replacePending(src, name);
+    loaded++;
+  }
+  return loaded;
+}
+
+async function afterPaste(report: PasteReport) {
+  if (report.images.length) await loadPendingImages(report.images);
+}
+
+const pickPending = $<HTMLInputElement>('pick-pending');
+pickPending.addEventListener('change', async () => {
+  const file = imageFiles(pickPending.files ?? undefined)[0];
+  pickPending.value = '';
+  if (!file || !pendingPick) return;
+  const name = await storeNewImage(file, file.name);
+  if (name) replacePending(pendingPick, name);
+});
 
 // --- Abrir una lección y borrador ------------------------------------------------
 

@@ -160,6 +160,26 @@ export const LessonImage = Node.create<LessonImageOptions>({
 });
 
 /** Link de Live ($Link texto <destino>): a otra página, a una web, a un email o a otro Set. */
+/**
+ * Imagen pegada que todavía no se cargó (Docs pega un link a Google, no la imagen). La app
+ * intenta bajarla; si no puede, queda este recuadro para elegirla a mano. No se exporta.
+ */
+export const PendingImage = Node.create({
+  name: 'pendingImage',
+  group: 'block',
+  atom: true,
+  selectable: true,
+  addAttributes() {
+    return { src: { default: '', parseHTML: (el) => el.getAttribute('data-pending-image') ?? '', rendered: false } };
+  },
+  parseHTML() {
+    return [{ tag: 'p[data-pending-image]', priority: 100 }];
+  },
+  renderHTML() {
+    return ['figure', { class: 'lv-image pending', contenteditable: 'false' }, t.pendingImage];
+  },
+});
+
 export const LessonLink = Mark.create({
   name: 'link',
   inclusive: false,

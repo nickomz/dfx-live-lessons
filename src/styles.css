@@ -218,6 +218,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .lv-editor .lv-image { margin: 0; width: 260px; max-width: 100%; }
 .lv-editor .lv-image img { display: block; width: 100%; height: auto; }
 .lv-editor .lv-image.ProseMirror-selectednode { outline: 2px solid #fff; outline-offset: 2px; }
+.lv-editor .lv-image.pending { padding: 18px 10px; border: 1px dashed #9a9a9a; border-radius: 4px; color: #e0e0e0; font: 12px Inter, sans-serif; text-align: center; cursor: pointer; }
 .lv-editor .lv-image.missing { padding: 10px; background: #5a5a5a; color: #e0e0e0; font: 11px Inter, sans-serif; border-radius: 4px; }
 
 /* Links: subrayados, como en Live */
