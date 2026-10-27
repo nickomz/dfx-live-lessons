@@ -160,6 +160,8 @@ Lo que el editor tiene que imitar (ver capturas):
 | [live12-fidelidad-espacios.jpg](capturas/live12-fidelidad-espacios.jpg) | Líneas vacías y espacios (Live 12) |
 | [live12-fidelidad-simbolos.jpg](capturas/live12-fidelidad-simbolos.jpg) | Emojis y símbolos (Live 12) |
 | [live11-fidelidad-clave.jpg](capturas/live11-fidelidad-clave.jpg) | Los casos clave en Live 11 |
+| [live12-16-docx-importado.jpg](capturas/live12-16-docx-importado.jpg) | El documento de prueba de Nicko importado como .docx (Live 12.4.7) |
+| [comparacion-docx-app-vs-live12.png](capturas/comparacion-docx-app-vs-live12.png) | El mismo documento en el editor (izquierda) y en Live 12 |
 
 ## Páginas vacías
 
