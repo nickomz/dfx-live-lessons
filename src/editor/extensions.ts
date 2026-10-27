@@ -204,9 +204,20 @@ function unwrapRedirect(href: string): string {
   return href;
 }
 
-// Live no muestra negrita y cursiva juntas (docs/formato.md): poner una saca la otra.
+// Live no muestra negrita y cursiva juntas (docs/formato.md): poner una saca la otra. Si algo
+// llega con las dos (pegado de Docs o Word), queda la negrita, como la escribe la app.
 export const LessonBold = Bold.extend({ excludes: 'italic' });
-export const LessonItalic = Italic.extend({ excludes: 'bold' });
+export const LessonItalic = Italic.extend({
+  addCommands() {
+    return {
+      ...this.parent?.(),
+      toggleItalic:
+        () =>
+        ({ editor, chain }) =>
+          editor.isActive('italic') ? chain().unsetMark('italic').run() : chain().unsetMark('bold').setMark('italic').run(),
+    };
+  },
+});
 
 /**
  * Live solo marca formato en palabras enteras: el marcador va pegado a un espacio o al borde
