@@ -20,6 +20,13 @@ export const LessonParagraph = Paragraph.extend({
         parseHTML: (el) => el.getAttribute('data-bullet') === 'true',
         renderHTML: (attrs) => (attrs.bullet ? { 'data-bullet': 'true' } : {}),
       },
+      // Nivel de la viñeta: 1, o 2 y 3 para sublistas (docs/formato.md).
+      level: {
+        default: 1,
+        keepOnSplit: true,
+        parseHTML: (el) => Math.min(3, Math.max(1, Number(el.getAttribute('data-level')) || 1)),
+        renderHTML: (attrs) => (attrs.bullet && attrs.level > 1 ? { 'data-level': String(attrs.level) } : {}),
+      },
       raw: { default: null, keepOnSplit: false, rendered: false },
     };
   },
@@ -37,15 +44,27 @@ export const LessonParagraph = Paragraph.extend({
   },
 
   addKeyboardShortcuts() {
+    const attrs = () => this.editor.state.selection.$from.parent.attrs;
+    // Sube un nivel; en el nivel 1 saca la viñeta.
     const unbullet = () => {
-      const { $from, empty } = this.editor.state.selection;
-      if (!empty || !$from.parent.attrs.bullet) return false;
-      return this.editor.commands.updateAttributes('paragraph', { bullet: false });
+      const { empty } = this.editor.state.selection;
+      if (!empty || !attrs().bullet) return false;
+      const level = Number(attrs().level) || 1;
+      return this.editor.commands.updateAttributes('paragraph', level > 1 ? { level: level - 1 } : { bullet: false, level: 1 });
+    };
+    const indent = (delta: number) => {
+      if (!attrs().bullet) return false;
+      const level = Math.min(3, Math.max(1, (Number(attrs().level) || 1) + delta));
+      this.editor.commands.updateAttributes('paragraph', { level });
+      return true;
     };
     return {
-      // Enter en una viñeta vacía termina la lista; Backspace al principio saca la viñeta.
+      // Enter en una viñeta vacía sube de nivel o termina la lista; Backspace al principio igual.
       Enter: () => this.editor.state.selection.$from.parent.content.size === 0 && unbullet(),
       Backspace: () => this.editor.state.selection.$from.parentOffset === 0 && unbullet(),
+      // Tab y Shift+Tab en una viñeta cambian el nivel (hasta 3).
+      Tab: () => indent(1),
+      'Shift-Tab': () => indent(-1),
     };
   },
 });

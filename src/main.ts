@@ -37,6 +37,7 @@ const icon = {
   prev: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#E6E6E6" stroke-width="3" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',
   next: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#E6E6E6" stroke-width="3" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
   bullet: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h4m0 0-2-2m2 2-2 2M12 12h8"/></svg>',
+  indent: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M11 12h10M11 18h10M3 10l4 3-4 3"/></svg>',
   divider: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h18"/></svg>',
   handle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
   upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>',
@@ -122,6 +123,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button id="tb-italic" class="i" aria-label="${t.italic}" aria-pressed="false">I</button>
       <button id="tb-link" aria-label="${t.link}" aria-pressed="false">${icon.link}</button>
       <button id="tb-bullet" aria-label="${t.bullet}" aria-pressed="false">${icon.bullet}</button>
+      <button id="tb-level" aria-label="${t.bulletLevel}" aria-pressed="false">${icon.indent}</button>
       <button id="tb-image" aria-label="${t.image}">${icon.image}</button>
       <button id="tb-divider" aria-label="${t.divider}">${icon.divider}</button>
     </div>
@@ -444,7 +446,10 @@ function updateTouchBar() {
   $('tb-bold').setAttribute('aria-pressed', String(editor.isActive('bold')));
   $('tb-italic').setAttribute('aria-pressed', String(editor.isActive('italic')));
   $('tb-link').setAttribute('aria-pressed', String(editor.isActive('link')));
-  $('tb-bullet').setAttribute('aria-pressed', String(!!editor.state.selection.$from.parent.attrs.bullet));
+  const para = editor.state.selection.$from.parent.attrs;
+  $('tb-bullet').setAttribute('aria-pressed', String(!!para.bullet));
+  $<HTMLButtonElement>('tb-level').disabled = !para.bullet;
+  $('tb-level').setAttribute('aria-pressed', String(!!para.bullet && Number(para.level) > 1));
 }
 if (isTouch) {
   window.visualViewport?.addEventListener('resize', updateTouchBar);
@@ -455,7 +460,12 @@ $('tb-italic').addEventListener('click', () => editor.chain().focus().toggleItal
 $('tb-link').addEventListener('click', () => openLinkDialog());
 $('tb-bullet').addEventListener('click', () => {
   const bullet = !!editor.state.selection.$from.parent.attrs.bullet;
-  editor.chain().focus().updateAttributes('paragraph', { bullet: !bullet }).run();
+  editor.chain().focus().updateAttributes('paragraph', { bullet: !bullet, level: 1 }).run();
+});
+// En el celular no hay Tab: este botón pasa la viñeta al nivel siguiente (1 → 2 → 3 → 1).
+$('tb-level').addEventListener('click', () => {
+  const level = Number(editor.state.selection.$from.parent.attrs.level) || 1;
+  editor.chain().focus().updateAttributes('paragraph', { level: level === 3 ? 1 : level + 1 }).run();
 });
 $('tb-image').addEventListener('click', () => $<HTMLInputElement>('pick-image').click());
 $('tb-divider').addEventListener('click', () => editor.chain().focus().insertContent([{ type: 'divider' }, { type: 'paragraph' }]).run());

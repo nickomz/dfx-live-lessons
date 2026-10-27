@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 import { cleanSetName, exportFiles, exportZip, fromLesson, newLesson, newPage } from '../src/editor/document';
 import { dirFromMap, readZip, scanLessons, type OpenedFolder } from '../src/app/open';
 import { readLessonFolder } from '../src/lesson';
-import { parseLesson, serializeLesson } from '../src/lesson';
+import { parseLesson, serializeBlock, serializeLesson } from '../src/lesson';
 
 const root = join(import.meta.dirname, '..');
 const dec = (b: Uint8Array) => new TextDecoder().decode(b);
@@ -155,5 +155,17 @@ describe('abrir la carpeta de un proyecto', () => {
 
   it('no encuentra nada si no hay ningún archivo de lección', async () => {
     expect(await scanLessons(dirFromMap(new Map([['Proyecto/set.als', new Uint8Array([1])], ['Proyecto/notas.txt', enc('hola')]])))).toEqual([]);
+  });
+});
+
+describe('sublistas en el editor', () => {
+  const EM = ' ';
+  it('una viñeta de nivel 2 leída vuelve igual, y cambiarla de nivel la reescribe', () => {
+    const blocks = parseLesson(`$Page A\n${EM}${EM}• Dos`).pages[0]!.blocks;
+    const content = blocksToContent(blocks);
+    expect(content[0]!.attrs).toMatchObject({ bullet: true, level: 2 });
+    expect(contentToBlocks(content)).toEqual(blocks);
+    content[0]!.attrs = { ...content[0]!.attrs, level: 3 };
+    expect(serializeBlock(contentToBlocks(content)[0]!)).toBe(`${EM}${EM}${EM}${EM}◦ Dos`);
   });
 });
